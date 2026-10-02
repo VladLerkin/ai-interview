@@ -116,20 +116,30 @@ export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini'
     if (!state.lastCandidateAnswer) return {};
 
     const llm = getLLM(0.0);
-    const prompt = `You are an expert English teacher and technical interviewer.
+    const languageMap: Record<string, string> = {
+      'en-US': 'English (American)',
+      'en-GB': 'English (British)',
+      'ru-RU': 'Russian (Русский)',
+      'de-DE': 'German (Deutsch)'
+    };
+    const targetLang = languageMap[config.language || 'en-US'] || 'English (American)';
+
+    const prompt = `You are an expert interviewer.
 Evaluate the candidate's last answer. 
 Previous Interviewer Speech: ${state.nextInterviewerSpeech || 'Tell me about yourself.'}
 Candidate Answer: ${state.lastCandidateAnswer}
 Candidate Resume Context: ${(state.resumeText || '').slice(0, 500)}
 Interview Type: ${state.interviewType || 'technical'}
 
+IMPORTANT: You MUST write your feedback (all text, comments, and suggested answers) entirely in ${targetLang}.
+
 Provide feedback strictly in the following JSON format:
 {
   "grammarCorrections": ["list of corrected sentences or empty"],
   "vocabularySuggestions": ["better words/phrases to use or empty"],
   "contentScore": 1-10,
-  "comment": "short comment on their performance",
-  "suggestedAnswer": "Write a short, simple, and punchy conversational answer (1-2 sentences MAXIMUM) that the candidate COULD have given. It must be very easy to say out loud. Keep vocabulary simple and natural. Do not write long paragraphs."
+  "comment": "short comment on their performance in ${targetLang}",
+  "suggestedAnswer": "Write a short, simple, and punchy conversational answer (1-2 sentences MAXIMUM) that the candidate COULD have given. It must be very easy to say out loud. Keep vocabulary simple and natural. MUST be written in ${targetLang}."
 }`;
     
     try {

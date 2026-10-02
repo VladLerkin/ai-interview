@@ -89,6 +89,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>('https://raw.githubusercontent.com/VladLerkin/ai-interview/75a4105/public/avatar.glb');
   const [avatarFileName, setAvatarFileName] = useState('');
 
+  const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
+
   useEffect(() => {
     getStoredData('interviewConfig').then((data: InterviewConfig) => {
       if (data) {
@@ -156,7 +158,21 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
         {step === 'type' ? (
           /* ──────── Step 1: Choose Interview Type ──────── */
           <div className="p-8">
-            <h2 className="text-lg font-semibold text-white mb-6 text-center">Choose Interview Type</h2>
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-gray-400 mb-2">{t('language')}</label>
+              <select
+                className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as any)}
+              >
+                <option value="en-US">English (American)</option>
+                <option value="en-GB">English (British)</option>
+                <option value="ru-RU">Russian (Русский)</option>
+                <option value="de-DE">German (Deutsch)</option>
+              </select>
+            </div>
+
+            <h2 className="text-lg font-semibold text-white mb-6 text-center">{t('selectType')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {interviewTypes.map((type) => {
                 const isSelected = interviewType === type.id;
@@ -213,7 +229,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
               onClick={() => setStep('details')}
               className="w-full mt-6 bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold rounded-xl py-4 shadow-lg shadow-primary-500/30 transform transition-all hover:-translate-y-1 active:translate-y-0 text-lg flex items-center justify-center gap-2"
             >
-              Continue with {selectedType.title} <ChevronRight className="w-5 h-5" />
+              {t('continue')} {selectedType.title} <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         ) : (
@@ -241,11 +257,11 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
               {/* API Settings */}
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary-500" /> API Settings
+                  <Settings className="w-5 h-5 text-primary-500" /> {t('apiSettings')}
                 </h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Provider</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('provider')}</label>
                   <select
                     className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     value={provider}
@@ -258,22 +274,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Language & Accent</label>
-                  <select
-                    className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value as any)}
-                  >
-                    <option value="en-US">English (American)</option>
-                    <option value="en-GB">English (British)</option>
-                    <option value="ru-RU">Russian (Русский)</option>
-                    <option value="de-DE">German (Deutsch)</option>
-                  </select>
-                </div>
-
-                <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1 flex items-center gap-1">
-                    <Key className="w-4 h-4" /> API Key
+                    <Key className="w-4 h-4" /> {t('apiKey')}
                   </label>
                   <input
                     type="password"
@@ -294,13 +296,13 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 </h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Target Company (Optional)</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('companyInfo')}</label>
                   <div className="relative">
                     <Building className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
                     <input
                       type="text"
                       className="w-full bg-dark-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                      placeholder="e.g. Google, Meta"
+                      placeholder={t('companyPlaceholder')}
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                     />
@@ -308,12 +310,12 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Job Description</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('jobDesc')}</label>
                   <textarea
                     required
                     rows={2}
                     className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-none"
-                    placeholder="Paste target job description..."
+                    placeholder={t('jobDescPlaceholder')}
                     value={jobDesc}
                     onChange={(e) => setJobDesc(e.target.value)}
                   />
@@ -322,7 +324,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
             </div>
 
             <div className="border-t border-gray-800 pt-6">
-              <label className="block text-sm font-medium text-gray-400 mb-2">Your Resume (PDF)</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">{t('uploadResume')}</label>
               <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center hover:bg-dark-800/50 transition-colors cursor-pointer relative">
                 <input
                   type="file"
@@ -407,7 +409,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
               type="submit"
               className="w-full bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold rounded-xl py-4 shadow-lg shadow-primary-500/30 transform transition-all hover:-translate-y-1 active:translate-y-0 text-lg"
             >
-              Start Interview
+              {t('startInterview')}
             </button>
           </form>
         )}

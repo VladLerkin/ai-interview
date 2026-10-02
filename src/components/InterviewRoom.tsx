@@ -4,6 +4,7 @@ import type { InterviewConfig } from '../types/interview';
 
 import { createInterviewAgent } from '../agent/interviewGraph';
 import { Mic, MicOff, Send, Brain, CheckCircle2, AlertTriangle, MessageSquare, Volume2, Lightbulb, Square } from 'lucide-react';
+import { getTranslation } from '../lib/i18n';
 
 import { getStoredData, setStoredData } from '../lib/store';
 
@@ -27,6 +28,9 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   const [transcript, setTranscript] = useState('');
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentEmotion, setCurrentEmotion] = useState('neutral');
+
+  const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(config.language, key);
 
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesis>(window.speechSynthesis);
@@ -336,7 +340,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       <div className="flex w-full lg:w-80 flex-col gap-4 order-3 lg:order-1 min-h-[400px] lg:min-h-0 shrink-0">
         <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden border border-emerald-900/30">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <Lightbulb className="text-emerald-400 w-6 h-6" /> Suggested Answer
+            <Lightbulb className="text-emerald-400 w-6 h-6" /> {t('suggestedAnswer')}
           </h2>
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             {state.latestFeedback?.suggestedAnswer ? (
@@ -345,7 +349,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
               </div>
             ) : (
               <p className="text-gray-400 text-lg text-center mt-10">
-                Answer a question to see an ideal response here.
+                {t('awaitingAnswer')}
               </p>
             )}
           </div>
@@ -363,11 +367,11 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
               <div className="text-base md:text-xl font-medium text-white drop-shadow-md leading-snug">
                 {isEvaluating ? (
                   <span className="flex items-center justify-center gap-2 text-primary-400">
-                    <Brain className="w-5 h-5 animate-pulse" /> Evaluating your response...
+                    <Brain className="w-5 h-5 animate-pulse" /> {t('evaluating')}
                   </span>
                 ) : (
                   <div className="flex items-start justify-between gap-4">
-                    <p>{state.nextInterviewerSpeech || 'Preparing interview...'}</p>
+                    <p>{state.nextInterviewerSpeech || t('preparing')}</p>
                     {state.nextInterviewerSpeech && (
                       <div className="flex gap-2 shrink-0">
                         {isSpeaking && (
@@ -404,7 +408,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
             <div className="glass-panel px-4 py-2 md:py-2 rounded-full flex items-center gap-2 pointer-events-auto">
               <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse-slow"></div>
               <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-primary-100">
-                Stage: {(state.interviewStage || 'warmup').replace('_', ' ')}
+                {t('stage')}: {(state.interviewStage || 'warmup').replace('_', ' ')}
               </span>
             </div>
             
@@ -412,7 +416,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
               onClick={onReset}
               className="md:hidden glass-panel text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/50 px-4 py-2 rounded-xl pointer-events-auto transition-colors border border-gray-700/50"
             >
-              End
+              {t('end')}
             </button>
           </div>
         </div>
@@ -421,12 +425,12 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
         <div className="h-32 glass-panel rounded-2xl flex items-center p-4 gap-4">
           {state.isCompleted ? (
             <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in">
-              <h3 className="text-xl font-bold text-green-400 mb-2">Interview Completed!</h3>
+              <h3 className="text-xl font-bold text-green-400 mb-2">{t('interviewCompleted')}</h3>
               <button 
                 onClick={onReset}
                 className="px-6 py-2 bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary-500/30"
               >
-                Return to Setup
+                {t('returnToSetup')}
               </button>
             </div>
           ) : (
@@ -434,7 +438,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
               <div className="flex-1 h-full relative">
                 <textarea 
                   className="w-full h-full bg-dark-800/50 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all text-lg custom-scrollbar"
-                  placeholder={isListening ? "Listening..." : "Type your answer or use microphone..."}
+                  placeholder={isListening ? t('listening') : t('typeAnswer')}
                   value={transcript + (interimTranscript ? ' ' + interimTranscript : '')}
                   onChange={(e) => {
                     setTranscript(e.target.value);
@@ -452,7 +456,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                     isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-primary-600 hover:bg-primary-500 text-white'
                   } ${isEvaluating || isSpeaking ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />} Mic
+                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />} {t('mic')}
                 </button>
                 
                 <button 
@@ -460,7 +464,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                   disabled={!transcript.trim() || isEvaluating || isSpeaking}
                   className="flex-1 bg-white text-dark-900 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit <Send className="w-4 h-4" />
+                  {t('submit')} <Send className="w-4 h-4" />
                 </button>
               </div>
             </>
@@ -475,23 +479,23 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
             onClick={onReset} 
             className="absolute top-4 right-4 text-xs bg-dark-800 hover:bg-red-600/80 text-gray-400 hover:text-white px-3 py-1 rounded-lg transition-colors border border-gray-700"
           >
-            End Interview
+            {t('end')}
           </button>
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <CheckCircle2 className="text-green-500 w-6 h-6" /> Live Feedback
+            <CheckCircle2 className="text-green-500 w-6 h-6" /> {t('liveFeedback')}
           </h2>
           
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
             {!state.latestFeedback ? (
               <p className="text-gray-400 text-lg text-center mt-10">
-                Answer the first question to receive AI feedback.
+                {t('noFeedback')}
               </p>
             ) : (
               <div className="animate-in fade-in slide-in-from-right-4 space-y-4">
                 
                 <div className="bg-dark-800/80 rounded-xl p-4 border border-gray-700/50">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-semibold text-gray-400">Score</span>
+                    <span className="text-lg font-semibold text-gray-400">{t('score')}</span>
                     <span className={`text-2xl font-bold ${
                       (state.latestFeedback?.contentScore ?? 0) >= 8 ? 'text-green-400' : 
                       (state.latestFeedback?.contentScore ?? 0) >= 5 ? 'text-yellow-400' : 'text-red-400'
@@ -505,7 +509,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                 {(state.latestFeedback?.grammarCorrections?.length ?? 0) > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-red-400 flex items-center gap-2 mb-3">
-                      <AlertTriangle className="w-5 h-5" /> Grammar Issues
+                      <AlertTriangle className="w-5 h-5" /> {t('grammar')}
                     </h3>
                     <ul className="space-y-3">
                       {(state.latestFeedback?.grammarCorrections ?? []).map((g: string, i: number) => (
@@ -518,7 +522,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                 {(state.latestFeedback?.vocabularySuggestions?.length ?? 0) > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold text-primary-400 flex items-center gap-2 mb-3">
-                      <MessageSquare className="w-5 h-5" /> Better Vocab
+                      <MessageSquare className="w-5 h-5" /> {t('vocabulary')}
                     </h3>
                     <ul className="space-y-3">
                       {(state.latestFeedback?.vocabularySuggestions ?? []).map((v: string, i: number) => (
