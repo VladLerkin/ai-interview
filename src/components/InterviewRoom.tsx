@@ -333,7 +333,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   }
 
   return (
-    <div className="min-h-[100dvh] md:h-screen w-full flex flex-col md:flex-row bg-dark-900 p-2 md:p-4 gap-2 md:gap-4 overflow-y-auto overflow-x-hidden">
+    <div className="h-[100dvh] md:h-screen w-full flex flex-col md:flex-row bg-dark-900 p-2 md:p-4 gap-2 md:gap-4 overflow-y-auto overflow-x-hidden">
       
       {/* Left Panel: Suggested Answer */}
       <div className="flex w-full lg:w-80 flex-col gap-4 order-3 lg:order-1 min-h-[400px] lg:min-h-0 shrink-0">

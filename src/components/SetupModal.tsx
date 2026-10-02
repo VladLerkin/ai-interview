@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight } from 'lucide-react';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, Download } from 'lucide-react';
 import type { InterviewType, InterviewConfig } from '../types/interview';
 import { getTranslation } from '../lib/i18n';
 
@@ -89,8 +89,18 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [selectedAvatarId, setSelectedAvatarId] = useState('realistic');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>('https://raw.githubusercontent.com/VladLerkin/ai-interview/75a4105/public/avatar.glb');
   const [avatarFileName, setAvatarFileName] = useState('');
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   useEffect(() => {
     getStoredData('interviewConfig').then((data: InterviewConfig) => {
@@ -151,9 +161,25 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   return (
     <div className="fixed inset-0 bg-dark-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
       <div className="glass-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-3xl animate-in fade-in zoom-in duration-500">
-        <div className="bg-gradient-to-r from-primary-600 to-purple-600 p-6 text-center">
+        <div className="bg-gradient-to-r from-primary-600 to-purple-600 p-6 text-center relative">
           <h1 className="text-3xl font-bold text-white mb-2">AI Interview Simulator</h1>
           <p className="text-primary-100 opacity-90">Prepare for your next big role with real-time feedback.</p>
+          
+          {installPrompt && (
+            <button 
+              onClick={async () => {
+                installPrompt.prompt();
+                const { outcome } = await installPrompt.userChoice;
+                if (outcome === 'accepted') {
+                  setInstallPrompt(null);
+                }
+              }}
+              className="absolute top-4 right-4 md:top-6 md:right-6 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Install App
+            </button>
+          )}
         </div>
 
         {step === 'type' ? (
