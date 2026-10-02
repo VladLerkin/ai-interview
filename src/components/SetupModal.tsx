@@ -3,6 +3,7 @@ import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData } from '../lib/store';
 import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight } from 'lucide-react';
 import type { InterviewType, InterviewConfig } from '../types/interview';
+import { getTranslation } from '../lib/i18n';
 
 export type { InterviewType, InterviewConfig };
 
@@ -76,8 +77,8 @@ const PREDEFINED_AVATARS = [
 
 export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [step, setStep] = useState<'type' | 'details'>('type');
-  const [interviewType, setInterviewType] = useState<InterviewType>('technical');
-  const [language, setLanguage] = useState<'en-US' | 'en-GB' | 'ru-RU' | 'de-DE'>('en-US');
+  const [interviewType, setInterviewType] = useState<InterviewType>('hr_screening');
+  const [language, setLanguage] = useState<'en-US' | 'en-GB' | 'ru-RU' | 'de-DE'>('en-GB');
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'deepseek'>('gemini');
   const [apiKey, setApiKey] = useState(localStorage.getItem('interview_apikey') || '');
   const [jobDesc, setJobDesc] = useState('');

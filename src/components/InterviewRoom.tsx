@@ -28,7 +28,6 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   const [transcript, setTranscript] = useState('');
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [currentEmotion, setCurrentEmotion] = useState('neutral');
 
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(config.language, key);
 
@@ -58,7 +57,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
     initCalledRef.current = true;
 
     const init = async () => {
-      const g = await createInterviewAgent(config.provider, config.apiKey);
+      const g = await createInterviewAgent(config.provider, config.apiKey, config.language);
       setGraph(g);
       
       // Start initial run
@@ -236,7 +235,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
         rate = Math.max(0.8, Math.min(1.15, rate));
 
         const utterance = new SpeechSynthesisUtterance(sentence);
-        utterance.lang = isRussian ? 'ru-RU' : 'en-US';
+        utterance.lang = config.language || 'en-US';
         if (preferredVoice) utterance.voice = preferredVoice;
         utterance.pitch = pitch;
         utterance.rate = rate;

@@ -83,7 +83,7 @@ export const InterviewState = Annotation.Root({
   }),
 });
 
-export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini' | 'deepseek', apiKey: string) => {
+export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini' | 'deepseek', apiKey: string, language: string) => {
   const getLLM = (temperature = 0.7) => {
     if (provider === 'openai') {
       return new ChatOpenAI({
@@ -132,7 +132,7 @@ export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini'
       'ru-RU': 'Russian (Русский)',
       'de-DE': 'German (Deutsch)'
     };
-    const targetLang = languageMap[config.language || 'en-US'] || 'English (American)';
+    const targetLang = languageMap[language || 'en-US'] || 'English (American)';
 
     const prompt = `You are an expert interviewer.
 Evaluate the candidate's last answer. 
@@ -211,7 +211,7 @@ Provide feedback strictly in the following JSON format:
       'ru-RU': 'Russian (Русский)',
       'de-DE': 'German (Deutsch)'
     };
-    const targetLang = languageMap[config.language || 'en-US'] || 'English (American)';
+    const targetLang = languageMap[language || 'en-US'] || 'English (American)';
 
     let sysMsg = `${typePrompt}
 
