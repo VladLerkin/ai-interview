@@ -350,9 +350,9 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
           <AvatarCanvas speaking={isSpeaking} emotion={currentEmotion} avatarUrl={config.avatarUrl} onModelReady={handleModelReady} />
           
           {/* Subtitles / Speech Bubble */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl text-center z-10">
-            <div className="glass-panel p-4 rounded-2xl animate-in slide-in-from-bottom-4">
-              <div className="text-xl font-medium text-white drop-shadow-md">
+          <div className="absolute bottom-2 md:bottom-10 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-2xl text-center z-10">
+            <div className="glass-panel p-3 md:p-4 rounded-2xl animate-in slide-in-from-bottom-4">
+              <div className="text-base md:text-xl font-medium text-white drop-shadow-md leading-snug">
                 {isEvaluating ? (
                   <span className="flex items-center justify-center gap-2 text-primary-400">
                     <Brain className="w-5 h-5 animate-pulse" /> Evaluating your response...
@@ -391,14 +391,21 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
             </div>
           </div>
 
-          {/* Stage Badge */}
-          <div className="absolute top-4 left-4 z-10">
-            <div className="glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+          {/* Stage Badge & Mobile End Button */}
+          <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+            <div className="glass-panel px-4 py-2 md:py-2 rounded-full flex items-center gap-2 pointer-events-auto">
               <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse-slow"></div>
-              <span className="text-sm font-semibold uppercase tracking-wider text-primary-100">
+              <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-primary-100">
                 Stage: {(state.interviewStage || 'warmup').replace('_', ' ')}
               </span>
             </div>
+            
+            <button 
+              onClick={onReset}
+              className="md:hidden glass-panel text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/50 px-4 py-2 rounded-xl pointer-events-auto transition-colors border border-gray-700/50"
+            >
+              End
+            </button>
           </div>
         </div>
 
@@ -454,7 +461,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       </div>
 
       {/* Right Panel: HUD & Feedback */}
-      <div className="w-full md:w-96 flex flex-col gap-4">
+      <div className="hidden md:flex w-96 flex-col gap-4">
         <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden relative">
           <button 
             onClick={onReset} 
