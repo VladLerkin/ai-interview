@@ -101,6 +101,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
     init();
   }, [config, threadId]);
 
+  const [interimTranscript, setInterimTranscript] = useState('');
+
   // Setup Web Speech API STT
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -108,25 +110,35 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      recognition.lang = window.navigator.language || 'en-US'; // Use system language
       
       recognition.onresult = (event: any) => {
         let finalTrans = '';
+        let interimTrans = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTrans += event.results[i][0].transcript;
+          } else {
+            interimTrans += event.results[i][0].transcript;
           }
         }
-        if (finalTrans) setTranscript((prev) => prev + ' ' + finalTrans);
+        if (finalTrans) {
+          setTranscript((prev) => prev + (prev ? ' ' : '') + finalTrans);
+        }
+        setInterimTranscript(interimTrans);
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
+        if (event.error !== 'no-speech') {
+          setTranscript((prev) => prev + ` [Mic Error: ${event.error}]`);
+        }
         setIsListening(false);
       };
       
       recognition.onend = () => {
         setIsListening(false);
+        setInterimTranscript('');
       };
       
       recognitionRef.current = recognition;
@@ -139,8 +151,13 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       setIsListening(false);
     } else {
       setTranscript('');
-      recognitionRef.current?.start();
-      setIsListening(true);
+      setInterimTranscript('');
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (err) {
+        console.error("Mic start error", err);
+      }
     }
   };
 
@@ -403,8 +420,11 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                 <textarea 
                   className="w-full h-full bg-dark-800/50 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all text-lg custom-scrollbar"
                   placeholder={isListening ? "Listening..." : "Type your answer or use microphone..."}
-                  value={transcript}
-                  onChange={(e) => setTranscript(e.target.value)}
+                  value={transcript + (interimTranscript ? ' ' + interimTranscript : '')}
+                  onChange={(e) => {
+                    setTranscript(e.target.value);
+                    setInterimTranscript(''); // Clear interim if user manually types
+                  }}
                   disabled={isEvaluating || isSpeaking}
                 />
               </div>
