@@ -322,10 +322,10 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col md:flex-row bg-dark-900 p-4 gap-4">
+    <div className="min-h-[100dvh] md:h-screen w-full flex flex-col md:flex-row bg-dark-900 p-2 md:p-4 gap-2 md:gap-4 overflow-y-auto overflow-x-hidden">
       
       {/* Left Panel: Suggested Answer */}
-      <div className="hidden lg:flex w-80 flex-col gap-4">
+      <div className="flex w-full lg:w-80 flex-col gap-4 order-3 lg:order-1 min-h-[400px] lg:min-h-0 shrink-0">
         <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden border border-emerald-900/30">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Lightbulb className="text-emerald-400 w-6 h-6" /> Suggested Answer
@@ -345,8 +345,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       </div>
 
       {/* Center Stage: 3D Avatar */}
-      <div className="flex-1 flex flex-col gap-4 relative">
-        <div className="flex-1 relative rounded-3xl overflow-hidden border border-gray-800 shadow-2xl min-h-[50vh] bg-dark-900/50">
+      <div className="flex-1 flex flex-col gap-2 md:gap-4 relative order-1 lg:order-2 shrink-0">
+        <div className="h-[55vh] md:h-auto md:flex-1 relative rounded-3xl overflow-hidden border border-gray-800 shadow-2xl bg-dark-900/50 shrink-0">
           <AvatarCanvas speaking={isSpeaking} emotion={currentEmotion} avatarUrl={config.avatarUrl} onModelReady={handleModelReady} />
           
           {/* Subtitles / Speech Bubble */}
@@ -461,7 +461,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       </div>
 
       {/* Right Panel: HUD & Feedback */}
-      <div className="hidden md:flex w-96 flex-col gap-4">
+      <div className="flex w-full md:w-96 flex-col gap-4 order-4 md:order-3 min-h-[400px] md:min-h-0 shrink-0">
         <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden relative">
           <button 
             onClick={onReset} 
