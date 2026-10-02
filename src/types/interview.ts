@@ -1,4 +1,5 @@
 export type InterviewType = 'hr_screening' | 'technical' | 'system_design' | 'behavioral' | 'full_loop';
+export type Language = 'en-US' | 'en-GB' | 'ru-RU' | 'de-DE';
 
 export interface InterviewConfig {
   provider: 'openai' | 'anthropic' | 'gemini';
@@ -7,6 +8,7 @@ export interface InterviewConfig {
   jobDescription: string;
   companyInfo: string;
   interviewType: InterviewType;
+  language: Language;
   avatarUrl?: string;
   resumeFileName?: string;
 }

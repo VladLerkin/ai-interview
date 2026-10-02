@@ -185,6 +185,14 @@ Provide feedback strictly in the following JSON format:
     const currentStageIndex = stages.indexOf(state.interviewStage || stages[0]);
     const totalStages = stages.length;
     
+    const languageMap: Record<string, string> = {
+      'en-US': 'English (American)',
+      'en-GB': 'English (British)',
+      'ru-RU': 'Russian (Русский)',
+      'de-DE': 'German (Deutsch)'
+    };
+    const targetLang = languageMap[config.language || 'en-US'] || 'English (American)';
+
     let sysMsg = `${typePrompt}
 
 Company: ${state.companyInfo || 'a leading tech company'}.
@@ -192,6 +200,7 @@ Target role: ${state.jobDescription}.
 Candidate Resume: ${state.resumeText}.
 
 Current Stage: ${(state.interviewStage || stages[0]).replace(/_/g, ' ')} (${currentStageIndex + 1} of ${totalStages}).
+LANGUAGE REQUIREMENT: You MUST conduct this interview exclusively in ${targetLang}. All your responses MUST be in ${targetLang}.
 CRITICAL RULES:
 - Keep your responses extremely concise, conversational, and simple.
 - Speak in very short phrases, maximum 1 or 2 short sentences per response. 

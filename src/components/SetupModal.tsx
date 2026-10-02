@@ -77,6 +77,7 @@ const PREDEFINED_AVATARS = [
 export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [interviewType, setInterviewType] = useState<InterviewType>('technical');
+  const [language, setLanguage] = useState<'en-US' | 'en-GB' | 'ru-RU' | 'de-DE'>('en-US');
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('gemini');
   const [apiKey, setApiKey] = useState(localStorage.getItem('interview_apikey') || '');
   const [jobDesc, setJobDesc] = useState('');
@@ -96,6 +97,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
         if (data.jobDescription) setJobDesc(data.jobDescription);
         if (data.companyInfo) setCompany(data.companyInfo);
         if (data.interviewType) setInterviewType(data.interviewType);
+        if (data.language) setLanguage(data.language);
         if (data.resumeText) {
           setResumeText(data.resumeText);
           setFileName(data.resumeFileName || 'Saved Resume');
@@ -135,6 +137,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       jobDescription: jobDesc,
       companyInfo: company,
       interviewType,
+      language,
       avatarUrl,
       resumeFileName: fileName,
     });
@@ -251,6 +254,20 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     <option value="gemini">Google Gemini (Gemini 3.8 Flash)</option>
                     <option value="openai">OpenAI (GPT-4o-Mini)</option>
                     <option value="anthropic">Anthropic (Claude 3 Haiku)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Language & Accent</label>
+                  <select
+                    className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as any)}
+                  >
+                    <option value="en-US">English (American)</option>
+                    <option value="en-GB">English (British)</option>
+                    <option value="ru-RU">Russian (Русский)</option>
+                    <option value="de-DE">German (Deutsch)</option>
                   </select>
                 </div>
 

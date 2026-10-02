@@ -111,7 +111,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       const isAndroid = /Android/i.test(navigator.userAgent);
       recognition.continuous = !isAndroid; // continuous mode is extremely buggy on Android
       recognition.interimResults = true;
-      recognition.lang = window.navigator.language || 'en-US'; // Use system language
+      recognition.lang = config.language || window.navigator.language || 'en-US';
       
       recognition.onresult = (event: any) => {
         let finalTrans = '';
@@ -151,7 +151,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       
       recognitionRef.current = recognition;
     }
-  }, []);
+  }, [config.language]);
 
   const toggleListen = () => {
     if (isListening) {
@@ -179,19 +179,19 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       setIsSpeaking(true);
 
       const voices = synth.getVoices();
-      const isRussian = /[А-Яа-яЁё]/.test(text);
-      const langPrefix = isRussian ? 'ru' : 'en';
+      const targetLang = config.language || 'en-US';
+      const langPrefix = targetLang.split('-')[0];
 
       const preferredVoice = voices.find(
         (v) =>
-          v.lang.startsWith(langPrefix) &&
+          (v.lang === targetLang || v.lang.replace('_', '-').startsWith(targetLang)) &&
           (v.name.toLowerCase().includes('samantha') ||
             v.name.toLowerCase().includes('karen') ||
             v.name.toLowerCase().includes('female') ||
             v.name.toLowerCase().includes('zira') ||
             v.name.toLowerCase().includes('milena') ||
             v.name.toLowerCase().includes('google'))
-      ) || voices.find((v) => v.lang.startsWith(langPrefix));
+      ) || voices.find((v) => v.lang === targetLang) || voices.find((v) => v.lang.startsWith(langPrefix));
 
       // Safer sentence split that works on older Safari (no lookbehind)
       const sentences = text.match(/[^.!?…]+[.!?…]*/g)?.map((s) => s.trim()).filter((s) => s.length > 0) || [text];
