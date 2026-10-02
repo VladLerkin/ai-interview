@@ -108,7 +108,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      recognition.continuous = !isAndroid; // continuous mode is extremely buggy on Android
       recognition.interimResults = true;
       recognition.lang = window.navigator.language || 'en-US'; // Use system language
       
@@ -130,7 +131,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error', event.error);
-        if (event.error !== 'no-speech') {
+        // Ignore expected errors like aborting manually or silence timeout
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
           setTranscript((prev) => prev + ` [Mic Error: ${event.error}]`);
         }
         setIsListening(false);
@@ -138,7 +140,13 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       
       recognition.onend = () => {
         setIsListening(false);
-        setInterimTranscript('');
+        // On Android, manual stop causes abort which dumps interim results. Let's save them.
+        setInterimTranscript((prevInterim) => {
+          if (prevInterim.trim()) {
+            setTranscript((prevTranscript) => prevTranscript + (prevTranscript ? ' ' : '') + prevInterim);
+          }
+          return '';
+        });
       };
       
       recognitionRef.current = recognition;
