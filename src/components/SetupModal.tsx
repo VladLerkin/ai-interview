@@ -85,7 +85,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedAvatarId, setSelectedAvatarId] = useState('realistic');
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>('/avatar.glb');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>('https://raw.githubusercontent.com/VladLerkin/ai-interview/75a4105/public/avatar.glb');
   const [avatarFileName, setAvatarFileName] = useState('');
 
   useEffect(() => {
