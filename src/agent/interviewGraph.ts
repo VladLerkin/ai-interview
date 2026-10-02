@@ -83,7 +83,7 @@ export const InterviewState = Annotation.Root({
   }),
 });
 
-export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini', apiKey: string) => {
+export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini' | 'deepseek', apiKey: string) => {
   const getLLM = (temperature = 0.7) => {
     if (provider === 'openai') {
       return new ChatOpenAI({
@@ -91,6 +91,16 @@ export const createInterviewAgent = (provider: 'openai' | 'anthropic' | 'gemini'
         model: 'gpt-4o-mini',
         temperature,
         configuration: {
+          dangerouslyAllowBrowser: true
+        }
+      });
+    } else if (provider === 'deepseek') {
+      return new ChatOpenAI({
+        apiKey: apiKey,
+        model: 'deepseek-chat',
+        temperature,
+        configuration: {
+          baseURL: 'https://api.deepseek.com/v1',
           dangerouslyAllowBrowser: true
         }
       });

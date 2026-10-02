@@ -2,7 +2,7 @@ export type InterviewType = 'hr_screening' | 'technical' | 'system_design' | 'be
 export type Language = 'en-US' | 'en-GB' | 'ru-RU' | 'de-DE';
 
 export interface InterviewConfig {
-  provider: 'openai' | 'anthropic' | 'gemini';
+  provider: 'openai' | 'anthropic' | 'gemini' | 'deepseek';
   apiKey: string;
   resumeText: string;
   jobDescription: string;

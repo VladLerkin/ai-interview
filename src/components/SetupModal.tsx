@@ -78,7 +78,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [interviewType, setInterviewType] = useState<InterviewType>('technical');
   const [language, setLanguage] = useState<'en-US' | 'en-GB' | 'ru-RU' | 'de-DE'>('en-US');
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini'>('gemini');
+  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'deepseek'>('gemini');
   const [apiKey, setApiKey] = useState(localStorage.getItem('interview_apikey') || '');
   const [jobDesc, setJobDesc] = useState('');
   const [company, setCompany] = useState('');
@@ -270,6 +270,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     <option value="gemini">Google Gemini (Gemini 3.8 Flash)</option>
                     <option value="openai">OpenAI (GPT-4o-Mini)</option>
                     <option value="anthropic">Anthropic (Claude 3 Haiku)</option>
+                    <option value="deepseek">DeepSeek (DeepSeek Chat)</option>
                   </select>
                 </div>
 
