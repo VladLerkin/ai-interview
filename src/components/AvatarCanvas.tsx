@@ -539,13 +539,13 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
                 setMorph('ih', currentViseme.ih * 0.4);
                 setMorph('oh', currentViseme.oh * 0.55);
                 setMorph('ou', currentViseme.ou * 0.5);
-                setMorph('PP', (currentViseme.aa < 0.08 && currentViseme.oh < 0.08 && currentViseme.ou < 0.08) ? 0.35 : 0);
+                setMorph('PP', 0);
                 
-                // ARKit standard blendshapes (natural jaw & lip rounding, NO square gum-baring)
+                // ARKit standard blendshapes (natural jaw & lip rounding, perfectly resting lips)
                 setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.25) * 0.35);
                 setMorph('mouthPucker', currentViseme.ou * 0.5);
                 setMorph('mouthFunnel', currentViseme.oh * 0.4);
-                setMorph('mouthClose', (currentViseme.aa < 0.08 && currentViseme.oh < 0.08) ? 0.25 : 0);
+                setMorph('mouthClose', 0);
               } else {
                 setMorph('aa', 0);
                 setMorph('E', 0);
