@@ -1,51 +1,127 @@
 # AI Interview Simulator - Architecture & Design
 
-This document outlines the high-level architecture, the agentic AI workflow, and the 3D rendering pipeline for the AI Interview Simulator.
+This document outlines the technical architecture, agentic AI workflow, phonetic lip-sync pipeline, and 3D rendering engine for the AI Interview Simulator.
+
+---
 
 ## 1. System Architecture
 
-The application is built as a single-page Progressive Web App (PWA) using React, Vite, and Tailwind CSS. The core logic is split into two main domains:
-1. **Agentic Conversation Flow** (LangChain / LangGraph)
-2. **Immersive 3D Experience** (Three.js / React Three Fiber)
+The application is engineered as a high-performance single-page Progressive Web App (PWA) using React, Vite, Three.js, and Tailwind CSS. The system operates across three interconnected layers:
+1. **Agentic Conversation Flow** (`@langchain/langgraph` + multi-provider LLM routing)
+2. **Real-Time Speech & Serverless Audio** (Cloudflare Pages Functions native Edge TTS + Web Speech API)
+3. **3D Interactive Avatar Engine** (Three.js, Oculus Visemes, Apple ARKit blendshapes, and procedural micro-animations)
 
-### State Management
-The interview state is managed via an active LangGraph state object (`InterviewState`). This state tracks:
-- The candidate's resume and job description.
-- The current stage of the interview (e.g., `warmup`, `technical_deepdive`).
-- Chat history.
-- The most recent feedback and grammar assessment.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Client (Browser)                      │
+│                                                             │
+│   ┌────────────────────┐         ┌──────────────────────┐   │
+│   │  LangGraph Engine  │ ◄─────► │  Audio & STT/TTS     │   │
+│   │ (State Machine)    │         │  (SpeechSync)        │   │
+│   └─────────┬──────────┘         └──────────┬───────────┘   │
+│             │                               │               │
+│             ▼                               ▼               │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │         AvatarCanvas (Three.js 60fps Loop)          │   │
+│   │    - Procedural Head & Breathing Bones              │   │
+│   │    - Oculus Visemes + ARKit Lip-Sync Blendshapes    │   │
+│   │    - Emotional Expressions & Natural Blinking       │   │
+│   └─────────────────────────────────────────────────────┘   │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ /api/tts (Binary Audio Stream)
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│             Cloudflare Pages Serverless Proxy               │
+│         Native WebSocket binary stream to Edge TTS          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## 2. Agentic Workflow (LangGraph)
 
-The AI logic uses a deterministic state machine powered by `@langchain/langgraph` and is split into modular components within `src/agent/`:
-- **`llm.ts`**: Handles instantiation of LLM providers (Google Gemini, OpenAI, Anthropic, and DeepSeek) based on user configuration.
-- **`prompts.ts`**: Contains the system prompts and behavior guidelines for various interview stages.
-- **`stages.ts`**: Defines the routing logic for progressing the interview based on exchange count and selected interview type.
-- **`interviewGraph.ts`**: The core state machine orchestrating the workflow:
-  - **`evaluateAnswerNode`**: Uses a strictly typed prompt with `temperature=0` to evaluate the candidate's last answer, correcting grammar, scoring content, and generating an ideal concise response.
-  - **`routeNextStageNode`**: Progresses the interview through predefined stages.
-  - **`formulateQuestionNode`**: Synthesizes a highly conversational, concise follow-up question or response.
+The conversation state is orchestrated via a deterministic state machine built on `@langchain/langgraph`:
 
-## 3. 3D Rendering & Animation (AvatarCanvas)
+- **`evaluateAnswerNode`**: Executes at `temperature: 0` to score candidate answers (1–10), analyze grammar and tone, suggest vocabulary improvements, and synthesize an ideal candidate response.
+- **`routeNextStageNode`**: Dynamically transitions through interview phases (`warmup` → `technical_deepdive` → `behavioral` → `wrapup`) based on exchange count, candidate performance, and configured interview mode.
+- **`formulateQuestionNode`**: Produces natural, concise interviewer questions matching the candidate's background, language locale, and current interview context.
 
-The visual representation of the AI is handled by `AvatarCanvas.tsx`.
+### Multilingual Prompts
+System prompts enforce strict cultural and script consistency:
+- Non-Latin languages (e.g. Georgian `მხედრული`, Russian Cyrillic, Chinese, Japanese) never mix raw English terms into spoken replies (e.g. "Junior Java Developer" is naturally translated or transliterated).
 
-### Model Support
-- **VRM Models**: Fully supported utilizing `@pixiv/three-vrm`. 
-- **GLB/GLTF Models**: Supported natively. The script automatically traverses the scene graph to identify standard humanoid bones (e.g., `head`, `spine`, `jaw`) and extracts `morphTargetDictionary` references for ARKit blendshapes.
+---
 
-### Animation Pipeline
-The animation loop runs at 60fps via `useFrame`:
-1. **Breathing**: A subtle sine-wave rotation is applied to the `spine` bone.
-2. **Head Micro-Movements**: Continuous procedural nodding and head rotation add life to the avatar.
-3. **Blinking**: Randomized blinking sequences with double-blink probabilities are applied to the `eyeBlink` or VRM blink blendshapes.
-4. **Emotions**: Emotional state (Neutral, Happy, Thinking, Smirk) dictates the weights of facial blendshapes (like `mouthSmile`, `browInnerUp`).
-5. **Lip Sync**: The system maps visemes (aa, ee, ih, oh, ou) dynamically. When the avatar speaks, an array of weighted visemes is triggered procedurally in sync with the Web Speech API. Fallbacks are included for Apple ARKit blendshapes (e.g., `mouthPucker`, `mouthFunnel`).
+## 3. 3D Avatar Engine & Facial Rigging
 
-### Camera Framing
-Dynamic framing logic calculates the precise world position of the `head` bone to ensure the camera tracks the avatar seamlessly across different model sizes and proportions.
+The visual presentation is powered by `AvatarCanvas.tsx` utilizing Three.js and standard GLTF/GLB models (MetaPerson / ReadyPlayerMe) as well as VRM specifications.
 
-## 4. Speech Integration
+### Animation & Rigging Pipeline (60 FPS)
+1. **Breathing**: Sine-wave rotational modulation on the normalized `spine` bone.
+2. **Head Micro-Movements**: Procedural head drifting and gentle speaking nods synchronized with voice activity.
+3. **Natural Blinking**: Randomized blink timers with simulated human double-blinks driving `eyeBlinkLeft` and `eyeBlinkRight`.
+4. **Adaptive Camera Framing**:
+   - **Desktop Layout (`w >= 768px`)**: Camera distance `0.65`, framed at head bone center.
+   - **Mobile Portrait Layout (`w < 768px`)**: Camera distance `0.95`, focal target aligned horizontally at eye level (`headPos.y + 0.01`). This prevents close-up polygon stretching, eliminates hair parting scalp transparency, and provides comfortable headroom above subtitles.
 
-- **Speech-to-Text (STT)**: Uses the native `SpeechRecognition` API for real-time transcription.
-- **Text-to-Speech (TTS)**: Utilizes `window.speechSynthesis`. Safari/macOS quirks (like `onend` freezing) are bypassed by initializing the speech engine via a silent utterance during a trusted user interaction event (e.g., clicking "Start").
+---
+
+## 4. Advanced Phonetic Lip-Sync Pipeline
+
+Unlike simple volume-envelope jaw flapping, the simulator uses a multi-tier phonetic synthesis engine:
+
+### 1. Phonetic Timeline Synchronization (`SpeechVisemeTracker`)
+- Synchronizes with the exact audio duration (`audio.duration`).
+- Open vowels (`a, o, u, e, i`) receive a **2.3x duration weight** over rapid consonants, guaranteeing that lip shapes fully form and hold long enough for the human eye to perceive.
+
+### 2. ARKit + Oculus Viseme Integration
+- **Vowel Shapes**: Oculus visemes (`aa`, `E`, `ih`, `oh`, `ou`).
+- **Expressive Lip Rounding ("Трубочка")**: Calibrated `mouthPucker` (`ou * 0.55 + oh * 0.20`) and `mouthFunnel` (`oh * 0.50 + ou * 0.22`) produce natural "O" and "U" lip rounding without duck-face distortion.
+- **Upper Lip Mobility**: Subtle lifts via `mouthUpperUpLeft/Right` and `mouthShrugUpper` keep the upper lip dynamic during open vowels.
+- **Natural Tooth Concealment**: Lower tooth exposure is kept realistic by softening wide smile tension (`smileFactor = 1.0` when idle, `0.35` when speaking) and gently elevating the lower lip with `mouthShrugLower`.
+
+### 3. CJK & Japanese Kana Prosody Engine
+Chinese (Hanzi) and Japanese (Kanji/Kana) do not use space delimiters. The engine handles East Asian speech through:
+- **Full-Width Punctuation**: Characters `。`, `！`, `？` trigger full closing pauses (260ms), while `，`, `、`, `：` trigger clause pauses (130ms).
+- **Prosodic Phrasing**: Character sequences are split into natural 1–2 character words with 30ms micro-pauses.
+- **3-Phase Syllabic Decomposition**:
+  1. *Consonant Attack (25%)*: Bilabials (`m, b, p`, `ま, ば, ぱ`, `不, 们, 面`) trigger `VISEME_CLOSED` (lips touch); sibilants (`s, z, sh, ch`, `さ, す`, `是, 试`) trigger `VISEME_DENTAL`.
+  2. *Vowel Nucleus (55%)*: Expands to target vowel (`AH`, `EE`, `OO`, `WIDE`, `OH`).
+  3. *Release Coda (20%)*: Relaxes smoothly or closes on nasals (`ん`, `n`, `ng`).
+
+---
+
+## 5. Serverless Speech Synthesis (Edge TTS)
+
+High-fidelity neural voices are served with zero third-party subscriptions:
+
+- **Cloudflare Pages Function (`functions/api/tts.ts`)**:
+  - Connects directly to Microsoft Edge neural TTS endpoints via outbound WebSocket.
+  - Aggregates binary MPEG audio chunks and streams MP3 data directly to the browser.
+  - Provides natural neural voices across 9 locales:
+    - 🇺🇸 `en-US-AvaNeural`
+    - 🇬🇧 `en-GB-SoniaNeural`
+    - 🇷🇺 `ru-RU-SvetlanaNeural`
+    - 🇪🇸 `es-ES-XimenaNeural`
+    - 🇩🇪 `de-DE-KatjaNeural`
+    - 🇫🇷 `fr-FR-DeniseNeural`
+    - 🇨🇳 `zh-CN-XiaoxiaoNeural`
+    - 🇯🇵 `ja-JP-NanamiNeural`
+    - 🇬🇪 `ka-GE-EkaNeural`
+- **Fallback**: Automatically falls back to native browser `SpeechSynthesis` if network is unavailable.
+
+---
+
+## 6. Mobile & Responsive Layout Architecture
+
+The user interface automatically adapts between desktop workstations and mobile devices:
+
+- **Desktop (Multi-Column Stage)**:
+  - Left Sidebar: Suggested Answer panel (`lg:w-80`).
+  - Center Hero: 3D interactive avatar and speech interaction controls.
+  - Right Sidebar: Live feedback, score breakdown, and vocabulary tips (`md:w-96`).
+- **Mobile (`< 768px`)**:
+  - **Full-Height Focus (`h-[calc(100dvh-1rem)]`)**: The primary view is completely dedicated to the interviewer avatar (`flex-1 min-h-0`) and the response action bar (`h-28`).
+  - **Unblocked Articulation**: The speech subtitle box uses compact `text-base` typography positioned cleanly below the avatar's chin.
+  - **Touch-Friendly Controls**: Answer textarea features `16px` font size (preventing mobile iOS auto-zoom) and enlarged touch buttons.
+  - **Below-the-Fold Panels**: Suggested answers and live feedback are placed below the initial viewport, accessible via a smooth downward swipe without cluttering the interview session.
