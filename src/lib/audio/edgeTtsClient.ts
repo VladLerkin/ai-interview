@@ -1,4 +1,5 @@
 import { globalAudioAnalyser } from './audioAnalyser';
+import { globalSpeechVisemeTracker } from './speechVisemeTracker';
 
 let currentAudio: HTMLAudioElement | null = null;
 let currentBlobUrl: string | null = null;
@@ -45,11 +46,24 @@ export async function playEdgeSpeech(
     // Connect this audio to Web Audio API FFT analyser for zero-latency lip sync
     globalAudioAnalyser.connectAudioElement(audio);
 
+    // Initialize phonetic syllable timeline for the spoken text
+    globalSpeechVisemeTracker.startSpeech(text);
+
+    audio.onloadedmetadata = () => {
+      if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+        globalSpeechVisemeTracker.adjustDuration(audio.duration);
+      }
+    };
+
     audio.onplay = () => {
+      if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+        globalSpeechVisemeTracker.adjustDuration(audio.duration);
+      }
       callbacks?.onStart?.();
     };
 
     audio.onended = () => {
+      globalSpeechVisemeTracker.reset();
       if (currentBlobUrl) {
         URL.revokeObjectURL(currentBlobUrl);
         currentBlobUrl = null;
@@ -61,6 +75,7 @@ export async function playEdgeSpeech(
     };
 
     audio.onerror = () => {
+      globalSpeechVisemeTracker.reset();
       if (currentBlobUrl) {
         URL.revokeObjectURL(currentBlobUrl);
         currentBlobUrl = null;
@@ -74,6 +89,7 @@ export async function playEdgeSpeech(
     await audio.play();
     return true;
   } catch (err: unknown) {
+    globalSpeechVisemeTracker.reset();
     const error = err instanceof Error ? err : new Error(String(err));
     console.warn('[EdgeTTS] Could not play edge speech, falling back to browser synthesis:', error.message);
     if (currentBlobUrl) {
@@ -90,6 +106,7 @@ export async function playEdgeSpeech(
  * Immediately stops any playing Edge TTS audio and cleans up resources.
  */
 export function stopEdgeSpeech(): void {
+  globalSpeechVisemeTracker.reset();
   if (currentAudio) {
     try {
       currentAudio.pause();

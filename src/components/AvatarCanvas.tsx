@@ -318,13 +318,34 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       // ─── UNIVERSAL STATE UPDATES ──────────────────────────────
       // 1. Viseme Lip Sync
       if (speakingRef.current) {
-        const fftViseme = globalAudioAnalyser.active ? globalAudioAnalyser.getViseme() : null;
         const speechViseme = globalSpeechVisemeTracker.getCurrentViseme();
+        const audioEnergy = globalAudioAnalyser.active ? globalAudioAnalyser.getAudioEnergy() : 1.0;
 
-        if (fftViseme) {
-          targetViseme = { ...fftViseme };
-        } else if (speechViseme) {
-          targetViseme = { ...speechViseme };
+        if (speechViseme) {
+          // Modulate phonetic syllable viseme by speech audio envelope.
+          // In silent pauses or between sentences, mouth closes naturally.
+          const effectiveEnergy = globalAudioAnalyser.active ? Math.max(0.12, audioEnergy) : 1.0;
+          targetViseme = {
+            aa: speechViseme.aa * effectiveEnergy,
+            ee: speechViseme.ee * effectiveEnergy,
+            ih: speechViseme.ih * effectiveEnergy,
+            oh: speechViseme.oh * effectiveEnergy,
+            ou: speechViseme.ou * effectiveEnergy,
+          };
+        } else if (globalAudioAnalyser.active && audioEnergy > 0.05) {
+          // Dynamic syllable generation modulated by voice energy
+          visemeHoldRemaining -= dt * 1000;
+          if (visemeHoldRemaining <= 0) {
+            const syl = pickSyllable();
+            targetViseme = {
+              aa: syl.viseme.aa * audioEnergy,
+              ee: syl.viseme.ee * audioEnergy,
+              ih: syl.viseme.ih * audioEnergy,
+              oh: syl.viseme.oh * audioEnergy,
+              ou: syl.viseme.ou * audioEnergy,
+            };
+            visemeHoldRemaining = syl.holdMs;
+          }
         } else {
           visemeHoldRemaining -= dt * 1000;
           if (visemeHoldRemaining <= 0) {
@@ -510,30 +531,21 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
               setMorph('mouthFrownLeft', currentEmotionWeights.sad * 0.5);
               setMorph('mouthFrownRight', currentEmotionWeights.sad * 0.5);
 
-              // Lip sync via MetaPerson/Oculus Visemes
+              // Lip sync via MetaPerson/Oculus Visemes & ARKit
               if (speakingRef.current) {
-                // Wide/open visemes (keep low to avoid huge jaw drop)
-                setMorph('aa', currentViseme.aa * 0.4); 
-                setMorph('E', currentViseme.ee * 0.4);
+                // Oculus/ReadyPlayerMe standard visemes (clean natural articulation)
+                setMorph('aa', currentViseme.aa * 0.55); 
+                setMorph('E', currentViseme.ee * 0.5);
                 setMorph('ih', currentViseme.ih * 0.4);
-                // Pucker/funnel visemes (reduced to avoid excessive lip pursing)
-                setMorph('oh', currentViseme.oh * 0.6);
-                setMorph('ou', currentViseme.ou * 0.6);
-                setMorph('PP', (currentViseme.aa < 0.1 && currentViseme.oh < 0.1) ? 0.25 : 0);
+                setMorph('oh', currentViseme.oh * 0.55);
+                setMorph('ou', currentViseme.ou * 0.5);
+                setMorph('PP', (currentViseme.aa < 0.08 && currentViseme.oh < 0.08 && currentViseme.ou < 0.08) ? 0.35 : 0);
                 
-                // Fallbacks if model uses ARKit instead
-                setMorph('jawOpen', (currentViseme.aa + currentViseme.oh) * 0.15);
-                setMorph('mouthPucker', currentViseme.ou * 0.6);
-                setMorph('mouthFunnel', currentViseme.oh * 0.5);
-                
-                // Gentle upper lip movement (prevent exposing gums)
-                const upperLipLift = (currentViseme.aa + currentViseme.ee + currentViseme.ih) * 0.3;
-                setMorph('mouthUpperUpLeft', upperLipLift);
-                setMorph('mouthUpperUpRight', upperLipLift);
-                
-                setMorph('mouthLowerDownLeft', (currentViseme.aa + currentViseme.oh) * 0.2);
-                setMorph('mouthLowerDownRight', (currentViseme.aa + currentViseme.oh) * 0.2);
-                setMorph('cheekPuff', currentViseme.ou * 0.15);
+                // ARKit standard blendshapes (natural jaw & lip rounding, NO square gum-baring)
+                setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.25) * 0.35);
+                setMorph('mouthPucker', currentViseme.ou * 0.5);
+                setMorph('mouthFunnel', currentViseme.oh * 0.4);
+                setMorph('mouthClose', (currentViseme.aa < 0.08 && currentViseme.oh < 0.08) ? 0.25 : 0);
               } else {
                 setMorph('aa', 0);
                 setMorph('E', 0);
@@ -544,11 +556,7 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
                 setMorph('jawOpen', 0);
                 setMorph('mouthPucker', 0);
                 setMorph('mouthFunnel', 0);
-                setMorph('mouthUpperUpLeft', 0);
-                setMorph('mouthUpperUpRight', 0);
-                setMorph('mouthLowerDownLeft', 0);
-                setMorph('mouthLowerDownRight', 0);
-                setMorph('cheekPuff', 0);
+                setMorph('mouthClose', 0);
               }
             }
           } else if (jawBone) {

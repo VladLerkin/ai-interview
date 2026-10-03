@@ -63,6 +63,25 @@ export class AudioAnalyser {
   }
 
   /**
+   * Returns normalized audio speech energy (0.0 to 1.0) with noise gate.
+   * Useful for modulating mouth openness in sync with voice volume envelope.
+   */
+  getAudioEnergy(): number {
+    if (!this.analyser || !this.freqData || !this.isConnected) {
+      return 0;
+    }
+    this.analyser.getByteFrequencyData(this.freqData);
+    let sum = 0;
+    const count = Math.min(this.freqData.length, 64);
+    for (let i = 1; i < count; i++) {
+      sum += this.freqData[i];
+    }
+    const avg = sum / ((count - 1) * 255);
+    if (avg < 0.025) return 0;
+    return Math.min(1.0, (avg - 0.025) * 2.6);
+  }
+
+  /**
    * Computes current Viseme weights from FFT frequency bins.
    * Uses formant ratios (F1, F2) and frequency bands for real-time speech articulation.
    */
@@ -86,17 +105,16 @@ export class AudioAnalyser {
       return sum / ((end - start + 1) * 255);
     };
 
-    // Calculate energy across key speech frequency bands (assuming ~48kHz sample rate, ~94 Hz/bin):
     // Sub-voice / F0 (100–350 Hz): bins 1–4
     const f0Energy = getRangeEnergy(1, 4);
 
-    // Formant 1 (F1: 350–850 Hz): bins 4–9 (vowel jaw height: high for /a/, low for /i/, /u/)
+    // Formant 1 (F1: 350–850 Hz): bins 4–9
     const f1Energy = getRangeEnergy(4, 9);
 
-    // Formant 2 (F2: 900–2400 Hz): bins 10–25 (front vs back tongue: high for /e/, /i/, low for /o/, /u/)
+    // Formant 2 (F2: 900–2400 Hz): bins 10–25
     const f2Energy = getRangeEnergy(10, 25);
 
-    // High frequencies (Fricatives: 2500–6000 Hz): bins 26–64 (s, z, sh, f, dental consonants)
+    // High frequencies (Fricatives: 2500–6000 Hz): bins 26–64
     const highEnergy = getRangeEnergy(26, 64);
 
     // Total speech energy
@@ -110,18 +128,18 @@ export class AudioAnalyser {
     // Dynamic scale based on loudness
     const scale = Math.min(1.0, (totalVoiceEnergy - 0.04) * 2.2);
 
-    // Open vowel /aa/: characterized by high energy in both F0 and F1
-    const aaWeight = Math.min(1.0, (f1Energy * 1.6 + f0Energy * 0.5) * scale);
+    // Open vowel /aa/: balanced jaw height
+    const aaWeight = Math.min(0.65, (f1Energy * 1.1 + f0Energy * 0.3) * scale);
 
-    // Front high vowels /ee/, /ih/: high F2 relative to F1
+    // Front high vowels /ee/, /ih/
     const eeRatio = f2Energy / (f1Energy + 0.001);
-    const eeWeight = eeRatio > 1.1 ? Math.min(0.8, (f2Energy * 1.4) * scale) : 0;
-    const ihWeight = eeRatio > 0.9 ? Math.min(0.6, (f2Energy * 0.8) * scale) : 0;
+    const eeWeight = eeRatio > 0.8 ? Math.min(0.6, (f2Energy * 1.1) * scale) : 0;
+    const ihWeight = eeRatio > 0.7 ? Math.min(0.4, (f2Energy * 0.7) * scale) : 0;
 
-    // Rounded back vowels /oh/, /ou/: high F1 with low F2
+    // Rounded back vowels /oh/, /ou/
     const roundness = Math.max(0, f1Energy - f2Energy * 0.7);
-    const ohWeight = Math.min(0.7, roundness * 1.5 * scale);
-    const ouWeight = Math.min(0.6, (f0Energy * 0.8 + roundness * 0.6) * scale);
+    const ohWeight = Math.min(0.55, roundness * 1.2 * scale);
+    const ouWeight = Math.min(0.45, (f0Energy * 0.6 + roundness * 0.5) * scale);
 
     return {
       aa: Math.max(0, Math.min(1, aaWeight)),
