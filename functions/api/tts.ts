@@ -16,6 +16,7 @@ function getEdgeVoice(lang = 'en-US'): string {
   if (l.startsWith('fr')) return 'fr-FR-DeniseNeural';
   if (l.startsWith('zh')) return 'zh-CN-XiaoxiaoNeural';
   if (l.startsWith('ja')) return 'ja-JP-NanamiNeural';
+  if (l.startsWith('ka')) return 'ka-GE-EkaNeural';
   return 'en-US-JennyNeural';
 }
 

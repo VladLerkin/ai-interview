@@ -47,6 +47,18 @@ function charToViseme(char: string): Viseme {
   if (['m', 'b', 'p'].includes(c)) return VISEME_CLOSED;
   if (['f', 'v', 's', 'z', 'c'].includes(c)) return VISEME_DENTAL;
 
+  // Georgian vowels
+  if (['ა'].includes(c)) return VISEME_AH;
+  if (['ო'].includes(c)) return VISEME_OH;
+  if (['უ'].includes(c)) return VISEME_OO;
+  if (['ე'].includes(c)) return VISEME_WIDE;
+  if (['ი'].includes(c)) return VISEME_EE;
+
+  // Georgian consonants
+  if (['მ', 'ბ', 'პ', 'ფ'].includes(c)) return VISEME_CLOSED;
+  if (['ს', 'ზ', 'ც', 'ძ', 'წ', 'შ', 'ჟ', 'ჩ', 'ჯ', 'ჭ'].includes(c)) return VISEME_DENTAL;
+  if (['დ', 'თ', 'ნ', 'ლ', 'რ', 'კ', 'გ', 'ხ', 'ყ', 'ღ'].includes(c)) return VISEME_WIDE;
+
   return VISEME_AH;
 }
 
@@ -90,7 +102,7 @@ export class SpeechVisemeTracker {
       word = match ? match[0] : '';
     }
 
-    const cleanWord = word.trim().replace(/[^a-zA-Zа-яА-ЯёЁ]/g, '');
+    const cleanWord = word.trim().replace(/[^a-zA-Zа-яА-ЯёЁ\u10A0-\u10FF]/g, '');
     if (!cleanWord) return;
 
     // Estimate word duration: average ~60–80ms per character at rate 1.0

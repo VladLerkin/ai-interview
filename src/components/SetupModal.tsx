@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData } from '../lib/store';
 import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, Download } from 'lucide-react';
-import type { InterviewType, InterviewConfig } from '../types/interview';
+import type { InterviewType, InterviewConfig, Language } from '../types/interview';
+import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
 
 export type { InterviewType, InterviewConfig };
@@ -78,7 +79,7 @@ const PREDEFINED_AVATARS = [
 export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [interviewType, setInterviewType] = useState<InterviewType>('hr_screening');
-  const [language, setLanguage] = useState<'en-US' | 'en-GB' | 'ru-RU' | 'de-DE'>('en-GB');
+  const [language, setLanguage] = useState<Language>('en-GB');
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'deepseek'>('gemini');
   const [apiKey, setApiKey] = useState(localStorage.getItem('interview_apikey') || '');
   const [jobDesc, setJobDesc] = useState('');
@@ -190,12 +191,13 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
               <select
                 className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all font-medium"
                 value={language}
-                onChange={(e) => setLanguage(e.target.value as any)}
+                onChange={(e) => setLanguage(e.target.value as Language)}
               >
-                <option value="en-US">English (American)</option>
-                <option value="en-GB">English (British)</option>
-                <option value="ru-RU">Russian (Русский)</option>
-                <option value="de-DE">German (Deutsch)</option>
+                {LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </option>
+                ))}
               </select>
             </div>
 

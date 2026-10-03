@@ -1,5 +1,14 @@
 export type InterviewType = 'hr_screening' | 'technical' | 'system_design' | 'behavioral' | 'full_loop';
-export type Language = 'en-US' | 'en-GB' | 'ru-RU' | 'de-DE';
+export type Language =
+  | 'en-US'
+  | 'en-GB'
+  | 'ru-RU'
+  | 'es-ES'
+  | 'de-DE'
+  | 'fr-FR'
+  | 'zh-CN'
+  | 'ja-JP'
+  | 'ka-GE';
 export type Provider = 'openai' | 'anthropic' | 'gemini' | 'deepseek';
 
 export interface InterviewConfig {

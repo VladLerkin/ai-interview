@@ -41,7 +41,7 @@ const en = {
 export type TranslationKey = keyof typeof en;
 type Dictionary = Record<TranslationKey, string>;
 
-const translations: Record<Language, Dictionary> = {
+const translations: Partial<Record<Language, Dictionary>> = {
   'en-US': en,
   'en-GB': {
     ...en,
