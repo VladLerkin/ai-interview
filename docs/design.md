@@ -17,10 +17,14 @@ The interview state is managed via an active LangGraph state object (`InterviewS
 
 ## 2. Agentic Workflow (LangGraph)
 
-The AI logic uses a deterministic state machine powered by `@langchain/langgraph`:
-- **`evaluateAnswerNode`**: Uses a strictly typed prompt with `temperature=0` to evaluate the candidate's last answer, correcting grammar, scoring content, and generating an ideal concise response.
-- **`routeNextStageNode`**: Progresses the interview through a predefined series of stages (e.g., Introduction -> Technical -> Wrap-up) based on the number of conversational exchanges.
-- **`formulateQuestionNode`**: Synthesizes a highly conversational, concise follow-up question or response acting as the interviewer, taking into account the current stage and previous feedback.
+The AI logic uses a deterministic state machine powered by `@langchain/langgraph` and is split into modular components within `src/agent/`:
+- **`llm.ts`**: Handles instantiation of LLM providers (Google Gemini, OpenAI, Anthropic, and DeepSeek) based on user configuration.
+- **`prompts.ts`**: Contains the system prompts and behavior guidelines for various interview stages.
+- **`stages.ts`**: Defines the routing logic for progressing the interview based on exchange count and selected interview type.
+- **`interviewGraph.ts`**: The core state machine orchestrating the workflow:
+  - **`evaluateAnswerNode`**: Uses a strictly typed prompt with `temperature=0` to evaluate the candidate's last answer, correcting grammar, scoring content, and generating an ideal concise response.
+  - **`routeNextStageNode`**: Progresses the interview through predefined stages.
+  - **`formulateQuestionNode`**: Synthesizes a highly conversational, concise follow-up question or response.
 
 ## 3. 3D Rendering & Animation (AvatarCanvas)
 
