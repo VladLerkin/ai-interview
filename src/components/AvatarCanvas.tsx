@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRM, VRMExpressionPresetName } from '@pixiv/three-vrm';
+import { globalAudioAnalyser, globalSpeechVisemeTracker } from '../lib/audio';
 
 // ── Viseme definitions ──────────────────────────────────────────────
 // Each viseme blends multiple VRM mouth shapes for realistic lip sync.
@@ -317,11 +318,20 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       // ─── UNIVERSAL STATE UPDATES ──────────────────────────────
       // 1. Viseme Lip Sync
       if (speakingRef.current) {
-        visemeHoldRemaining -= dt * 1000;
-        if (visemeHoldRemaining <= 0) {
-          const syl = pickSyllable();
-          targetViseme = { ...syl.viseme };
-          visemeHoldRemaining = syl.holdMs;
+        const fftViseme = globalAudioAnalyser.active ? globalAudioAnalyser.getViseme() : null;
+        const speechViseme = globalSpeechVisemeTracker.getCurrentViseme();
+
+        if (fftViseme) {
+          targetViseme = { ...fftViseme };
+        } else if (speechViseme) {
+          targetViseme = { ...speechViseme };
+        } else {
+          visemeHoldRemaining -= dt * 1000;
+          if (visemeHoldRemaining <= 0) {
+            const syl = pickSyllable();
+            targetViseme = { ...syl.viseme };
+            visemeHoldRemaining = syl.holdMs;
+          }
         }
       } else {
         targetViseme = { ...VISEME_SILENCE };

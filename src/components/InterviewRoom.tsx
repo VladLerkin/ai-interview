@@ -5,6 +5,7 @@ import type { InterviewConfig } from '../types/interview';
 import { createInterviewAgent } from '../agent/interviewGraph';
 import { Mic, MicOff, Send, Brain, CheckCircle2, AlertTriangle, MessageSquare, Volume2, Lightbulb, Square } from 'lucide-react';
 import { getTranslation } from '../lib/i18n';
+import { globalSpeechVisemeTracker, playEdgeSpeech, stopEdgeSpeech } from '../lib/audio';
 
 import { getStoredData, setStoredData } from '../lib/store';
 
@@ -172,14 +173,30 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
     }
   };
 
-  const speak = (text: string) => {
+  const speak = async (text: string) => {
     if (!text) return;
     
-    const synth = synthesisRef.current;
     speechCancelledRef.current = false;
+
+    // 1. Try Microsoft Edge Neural TTS with real-time Web Audio FFT analysis
+    const success = await playEdgeSpeech(text, config.language || 'en-US', {
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
+
+    if (success) {
+      setIsSpeaking(true);
+      return;
+    }
+
+    // 2. Fallback to native window.speechSynthesis
+    const synth = synthesisRef.current;
 
     const doSpeak = () => {
       setIsSpeaking(true);
+      globalSpeechVisemeTracker.reset();
+      globalSpeechVisemeTracker.setActive(true);
 
       const voices = synth.getVoices();
       const targetLang = config.language || 'en-US';
@@ -201,6 +218,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
 
       if (sentences.length === 0) {
         setIsSpeaking(false);
+        globalSpeechVisemeTracker.setActive(false);
         return;
       }
 
@@ -241,9 +259,21 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
         utterance.rate = rate;
         utterance.volume = 1.0;
 
+        utterance.onboundary = (event) => {
+          if (event.name === 'word') {
+            globalSpeechVisemeTracker.onWordBoundary(sentence, event.charIndex, event.charLength, rate);
+          }
+        };
+
         if (isLast) {
-          utterance.onend = () => setIsSpeaking(false);
-          utterance.onerror = () => setIsSpeaking(false);
+          utterance.onend = () => {
+            setIsSpeaking(false);
+            globalSpeechVisemeTracker.setActive(false);
+          };
+          utterance.onerror = () => {
+            setIsSpeaking(false);
+            globalSpeechVisemeTracker.setActive(false);
+          };
         }
 
         synth.speak(utterance);
@@ -377,7 +407,9 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                           <button
                             onClick={() => {
                               speechCancelledRef.current = true;
+                              stopEdgeSpeech();
                               window.speechSynthesis.cancel();
+                              globalSpeechVisemeTracker.setActive(false);
                               setIsSpeaking(false);
                             }}
                             className="p-2 rounded-full hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"

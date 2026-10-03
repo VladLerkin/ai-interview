@@ -1,5 +1,6 @@
 import { getTargetEmotionWeights, NEUTRAL_EMOTION_WEIGHTS, type AvatarEmotion, type EmotionWeights } from './emotions';
 import { pickSyllable, VISEME_SILENCE, type Viseme } from './visemes';
+import { globalAudioAnalyser, globalSpeechVisemeTracker } from '../../lib/audio';
 
 // ── Helper: lerp ────────────────────────────────────────────────────
 export function lerp(current: number, target: number, speed: number, dt: number): number {
@@ -56,11 +57,20 @@ export function createFaceAnimator() {
 
     // 1. Viseme Lip Sync
     if (speaking) {
-      visemeHoldRemaining -= dt * 1000;
-      if (visemeHoldRemaining <= 0) {
-        const syl = pickSyllable();
-        targetViseme = { ...syl.viseme };
-        visemeHoldRemaining = syl.holdMs;
+      const fftViseme = globalAudioAnalyser.active ? globalAudioAnalyser.getViseme() : null;
+      const speechViseme = globalSpeechVisemeTracker.getCurrentViseme();
+
+      if (fftViseme) {
+        targetViseme = { ...fftViseme };
+      } else if (speechViseme) {
+        targetViseme = { ...speechViseme };
+      } else {
+        visemeHoldRemaining -= dt * 1000;
+        if (visemeHoldRemaining <= 0) {
+          const syl = pickSyllable();
+          targetViseme = { ...syl.viseme };
+          visemeHoldRemaining = syl.holdMs;
+        }
       }
     } else {
       targetViseme = { ...VISEME_SILENCE };

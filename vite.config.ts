@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { edgeTtsPlugin } from './vite-plugin-edge-tts.ts';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
     strictPort: true
   },
   plugins: [
+    edgeTtsPlugin(),
     react(),
     tailwindcss(),
     VitePWA({
