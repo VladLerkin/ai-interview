@@ -352,21 +352,21 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   }
 
   return (
-    <div className="h-[100dvh] md:h-screen w-full flex flex-col md:flex-row bg-dark-900 p-2 md:p-4 gap-2 md:gap-4 overflow-y-auto overflow-x-hidden">
+    <div className="min-h-[100dvh] md:h-screen w-full flex flex-col md:flex-row bg-dark-900 p-2 md:p-4 gap-3 md:gap-4 overflow-y-auto overflow-x-hidden">
       
-      {/* Left Panel: Suggested Answer */}
-      <div className="flex w-full lg:w-80 flex-col gap-4 order-3 lg:order-1 min-h-[400px] lg:min-h-0 shrink-0">
-        <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden border border-emerald-900/30">
+      {/* Left Panel: Suggested Answer (Sidebar on desktop, below-the-fold on mobile) */}
+      <div className="flex w-full lg:w-80 flex-col gap-4 order-3 lg:order-1 min-h-[350px] lg:min-h-0 shrink-0 mt-4 lg:mt-0">
+        <div className="flex-1 glass-panel rounded-3xl p-5 md:p-6 flex flex-col overflow-hidden border border-emerald-900/30">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Lightbulb className="text-emerald-400 w-6 h-6" /> {t('suggestedAnswer')}
           </h2>
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             {state.latestFeedback?.suggestedAnswer ? (
-              <div className="text-lg text-emerald-100 bg-emerald-900/20 p-5 rounded-xl border border-emerald-800/40 leading-relaxed italic animate-in fade-in slide-in-from-left-4">
+              <div className="text-base md:text-lg text-emerald-100 bg-emerald-900/20 p-4 md:p-5 rounded-xl border border-emerald-800/40 leading-relaxed italic animate-in fade-in slide-in-from-left-4">
                 "{state.latestFeedback.suggestedAnswer}"
               </div>
             ) : (
-              <p className="text-gray-400 text-lg text-center mt-10">
+              <p className="text-gray-400 text-base md:text-lg text-center mt-10">
                 {t('awaitingAnswer')}
               </p>
             )}
@@ -374,24 +374,24 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
         </div>
       </div>
 
-      {/* Center Stage: 3D Avatar */}
-      <div className="flex-1 flex flex-col gap-2 md:gap-4 relative order-1 lg:order-2 shrink-0">
-        <div className="h-[55vh] md:h-auto md:flex-1 relative rounded-3xl overflow-hidden border border-gray-800 shadow-2xl bg-dark-900/50 shrink-0">
+      {/* Center Stage: 3D Avatar & Controls (fills 100% of mobile viewport) */}
+      <div className="h-[calc(100dvh-1rem)] md:h-auto md:flex-1 flex flex-col gap-2 md:gap-4 relative order-1 lg:order-2 shrink-0">
+        <div className="flex-1 min-h-0 relative rounded-3xl overflow-hidden border border-gray-800 shadow-2xl bg-dark-900/50">
           <AvatarCanvas speaking={isSpeaking} emotion={currentEmotion} avatarUrl={config.avatarUrl} onModelReady={handleModelReady} />
           
           {/* Subtitles / Speech Bubble */}
-          <div className="absolute bottom-2 md:bottom-10 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-2xl text-center z-10">
-            <div className="glass-panel p-3 md:p-4 rounded-2xl animate-in slide-in-from-bottom-4">
-              <div className="text-base md:text-xl font-medium text-white drop-shadow-md leading-snug">
+          <div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-2xl text-center z-10">
+            <div className="glass-panel p-2.5 md:p-4 rounded-2xl animate-in slide-in-from-bottom-4 max-h-[28vh] md:max-h-none overflow-y-auto custom-scrollbar">
+              <div className="text-sm md:text-xl font-medium text-white drop-shadow-md leading-snug">
                 {isEvaluating ? (
                   <span className="flex items-center justify-center gap-2 text-primary-400">
                     <Brain className="w-5 h-5 animate-pulse" /> {t('evaluating')}
                   </span>
                 ) : (
-                  <div className="flex items-start justify-between gap-4">
-                    <p>{state.nextInterviewerSpeech || t('preparing')}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-left md:text-center flex-1">{state.nextInterviewerSpeech || t('preparing')}</p>
                     {state.nextInterviewerSpeech && (
-                      <div className="flex gap-2 shrink-0">
+                      <div className="flex gap-1.5 md:gap-2 shrink-0">
                         {isSpeaking && (
                           <button
                             onClick={() => {
@@ -401,19 +401,19 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                               globalSpeechVisemeTracker.setActive(false);
                               setIsSpeaking(false);
                             }}
-                            className="p-2 rounded-full hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
+                            className="p-1.5 md:p-2 rounded-full hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
                             title="Stop Speaking"
                           >
-                            <Square className="w-5 h-5 fill-current" />
+                            <Square className="w-4 h-4 md:w-5 md:h-5 fill-current" />
                           </button>
                         )}
                         <button
                           onClick={() => speak(state.nextInterviewerSpeech)}
                           disabled={isSpeaking}
-                          className="p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                          className="p-1.5 md:p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
                           title="Replay Audio"
                         >
-                          <Volume2 className="w-5 h-5" />
+                          <Volume2 className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
                       </div>
                     )}
@@ -424,8 +424,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
           </div>
 
           {/* Stage Badge & Mobile End Button */}
-          <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
-            <div className="glass-panel px-4 py-2 md:py-2 rounded-full flex items-center gap-2 pointer-events-auto">
+          <div className="absolute top-3 md:top-4 left-3 md:left-4 right-3 md:right-4 z-10 flex items-center justify-between pointer-events-none">
+            <div className="glass-panel px-3 py-1.5 md:px-4 md:py-2 rounded-full flex items-center gap-2 pointer-events-auto">
               <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse-slow"></div>
               <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-primary-100">
                 {t('stage')}: {(state.interviewStage || 'warmup').replace('_', ' ')}
@@ -434,7 +434,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
             
             <button 
               onClick={onReset}
-              className="md:hidden glass-panel text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/50 px-4 py-2 rounded-xl pointer-events-auto transition-colors border border-gray-700/50"
+              className="md:hidden glass-panel text-xs font-bold text-red-400 hover:text-white hover:bg-red-500/50 px-3 py-1.5 rounded-xl pointer-events-auto transition-colors border border-gray-700/50"
             >
               {t('end')}
             </button>
@@ -442,7 +442,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
         </div>
 
         {/* Action Bar */}
-        <div className="h-32 glass-panel rounded-2xl flex items-center p-4 gap-4">
+        <div className="h-24 md:h-32 glass-panel rounded-2xl flex items-center p-3 md:p-4 gap-2 md:gap-4 shrink-0">
           {state.isCompleted ? (
             <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in">
               <h3 className="text-xl font-bold text-green-400 mb-2">{t('interviewCompleted')}</h3>
@@ -457,7 +457,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
             <>
               <div className="flex-1 h-full relative">
                 <textarea 
-                  className="w-full h-full bg-dark-800/50 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all text-lg custom-scrollbar"
+                  className="w-full h-full bg-dark-800/50 border border-gray-700 rounded-xl px-3 py-2 md:px-4 md:py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all text-sm md:text-lg custom-scrollbar"
                   placeholder={isListening ? t('listening') : t('typeAnswer')}
                   value={transcript + (interimTranscript ? ' ' + interimTranscript : '')}
                   onChange={(e) => {
@@ -468,23 +468,23 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                 />
               </div>
 
-              <div className="flex flex-col gap-2 h-full justify-center w-32 shrink-0">
+              <div className="flex flex-col gap-1.5 md:gap-2 h-full justify-center w-28 md:w-32 shrink-0">
                 <button 
                   onClick={toggleListen}
                   disabled={isEvaluating || isSpeaking}
-                  className={`flex-1 rounded-xl flex items-center justify-center gap-2 transition-all font-bold ${
+                  className={`flex-1 rounded-xl flex items-center justify-center gap-1.5 md:gap-2 transition-all font-bold text-xs md:text-sm ${
                     isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse text-white' : 'bg-primary-600 hover:bg-primary-500 text-white'
                   } ${isEvaluating || isSpeaking ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />} {t('mic')}
+                  {isListening ? <MicOff className="w-4 h-4 md:w-5 md:h-5" /> : <Mic className="w-4 h-4 md:w-5 md:h-5" />} {t('mic')}
                 </button>
                 
                 <button 
                   onClick={submitAnswer}
                   disabled={!transcript.trim() || isEvaluating || isSpeaking}
-                  className="flex-1 bg-white text-dark-900 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-white text-dark-900 font-bold rounded-xl flex items-center justify-center gap-1.5 md:gap-2 hover:bg-gray-200 transition-all text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t('submit')} <Send className="w-4 h-4" />
+                  {t('submit')} <Send className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
               </div>
             </>
@@ -492,8 +492,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
         </div>
       </div>
 
-      {/* Right Panel: HUD & Feedback */}
-      <div className="flex w-full md:w-96 flex-col gap-4 order-4 md:order-3 min-h-[400px] md:min-h-0 shrink-0">
+      {/* Right Panel: HUD & Feedback (Sidebar on desktop, below-the-fold on mobile) */}
+      <div className="flex w-full md:w-96 flex-col gap-4 order-4 md:order-3 min-h-[350px] md:min-h-0 shrink-0 mt-2 md:mt-0 pb-6 md:pb-0">
         <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden relative">
           <button 
             onClick={onReset} 

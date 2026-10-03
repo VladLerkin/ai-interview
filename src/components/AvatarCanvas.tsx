@@ -250,11 +250,15 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
             if (headBone) {
               const headPos = new THREE.Vector3();
               headBone.getWorldPosition(headPos);
-              // Position camera directly in front of the head and look exactly at the head
-              camera.position.set(headPos.x, headPos.y, headPos.z + 0.65);
-              camera.lookAt(headPos.x, headPos.y, headPos.z);
+              const isMobile = window.innerWidth < 768;
+              const camDistance = isMobile ? 0.78 : 0.65;
+              const lookDownOffset = isMobile ? 0.05 : 0;
+              // Position camera in front of the head; on mobile frame slightly higher to leave lower third clear for subtitles
+              camera.position.set(headPos.x, headPos.y, headPos.z + camDistance);
+              camera.lookAt(headPos.x, headPos.y - lookDownOffset, headPos.z);
             } else {
-              camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * 0.55);
+              const isMobile = window.innerWidth < 768;
+              camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * (isMobile ? 0.68 : 0.55));
               camera.lookAt(0, fallbackHeadY - size.y * 0.2, 0);
             }
 
@@ -601,6 +605,19 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+
+      // Dynamically adapt camera distance and framing for portrait/mobile
+      const root = sceneRef.current?.children.find((c: any) => c.userData?._headBone !== undefined);
+      const head = root?.userData?._headBone as THREE.Bone | null;
+      if (head) {
+        const headPos = new THREE.Vector3();
+        head.getWorldPosition(headPos);
+        const isMobile = w < 768;
+        const camDistance = isMobile ? 0.78 : 0.65;
+        const lookDownOffset = isMobile ? 0.05 : 0;
+        camera.position.set(headPos.x, headPos.y, headPos.z + camDistance);
+        camera.lookAt(headPos.x, headPos.y - lookDownOffset, headPos.z);
+      }
     };
     window.addEventListener('resize', handleResize);
     const resizeTimer = setTimeout(handleResize, 100);
