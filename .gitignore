@@ -38,4 +38,8 @@ coverage/
 
 # OS metadata
 .DS_Store
+
+# Cloudflare
+_worker.bundle
+.wrangler
 Thumbs.db
