@@ -519,10 +519,8 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
               const baseSmileLeft = currentEmotionWeights.happy * 0.9 + (isSmirk ? 0.6 : 0);
               const baseSmileRight = currentEmotionWeights.happy * 0.9 + (isSmirk ? 0.1 : 0);
               
-              // When speaking, moderate smile width so the mouth corners aren't pulled back, exposing the lower teeth
-              const smileFactor = speakingRef.current ? 0.35 : 1.0;
-              setMorph('mouthSmileLeft', baseSmileLeft * smileFactor + (speakingRef.current ? currentViseme.ee * 0.2 : 0));
-              setMorph('mouthSmileRight', baseSmileRight * smileFactor + (speakingRef.current ? currentViseme.ee * 0.2 : 0));
+              setMorph('mouthSmileLeft', baseSmileLeft + (speakingRef.current ? currentViseme.ee * 0.3 : 0));
+              setMorph('mouthSmileRight', baseSmileRight + (speakingRef.current ? currentViseme.ee * 0.3 : 0));
               
               // Sarcastic squint for smirk
               setMorph('eyeSquintLeft', isSmirk ? 0.5 : 0);
@@ -539,17 +537,16 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
               // Lip sync via MetaPerson/Oculus Visemes & ARKit
               if (speakingRef.current) {
                 // Oculus/ReadyPlayerMe standard visemes (clean natural articulation)
-                // Moderated 'aa' so jaw drops naturally without exposing deep dental arch
-                setMorph('aa', currentViseme.aa * 0.42); 
-                setMorph('E', currentViseme.ee * 0.45);
-                setMorph('ih', currentViseme.ih * 0.35);
-                setMorph('oh', currentViseme.oh * 0.55);
-                setMorph('ou', currentViseme.ou * 0.55);
+                setMorph('aa', currentViseme.aa * 0.6); 
+                setMorph('E', currentViseme.ee * 0.5);
+                setMorph('ih', currentViseme.ih * 0.4);
+                setMorph('oh', currentViseme.oh * 0.6);
+                setMorph('ou', currentViseme.ou * 0.6);
                 setMorph('PP', 0);
                 
                 // ARKit standard blendshapes
-                // Subtle jaw opening so lower lip stays covering lower teeth
-                setMorph('jawOpen', (currentViseme.aa * 0.25 + currentViseme.oh * 0.12) * 0.25);
+                // Jaw opens naturally on /aa/ and moderately on /oh/
+                setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.18) * 0.45);
 
                 // Natural lip rounding and tube pucker for O and U (balanced, not excessive)
                 setMorph('mouthPucker', currentViseme.ou * 0.55 + currentViseme.oh * 0.2);
@@ -558,17 +555,10 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
                 setMorph('mouthRollUpper', currentViseme.ou * 0.1);
 
                 // Subtle upper lip mobility: lifts gently on open vowels so it is alive, not frozen
-                const upperLipLift = currentViseme.aa * 0.1 + currentViseme.ee * 0.08 + currentViseme.ih * 0.05;
+                const upperLipLift = currentViseme.aa * 0.12 + currentViseme.ee * 0.08 + currentViseme.ih * 0.06;
                 setMorph('mouthUpperUpLeft', upperLipLift);
                 setMorph('mouthUpperUpRight', upperLipLift);
-                setMorph('mouthShrugUpper', currentViseme.aa * 0.08 + currentViseme.ou * 0.1 + currentViseme.oh * 0.08);
-
-                // Keep lower lip elevated and corners covered to prevent lower teeth row from showing in corners
-                setMorph('mouthShrugLower', 0.18 + currentViseme.aa * 0.08);
-                setMorph('mouthLowerDownLeft', 0);
-                setMorph('mouthLowerDownRight', 0);
-                setMorph('mouthStretchLeft', 0);
-                setMorph('mouthStretchRight', 0);
+                setMorph('mouthShrugUpper', currentViseme.aa * 0.1 + currentViseme.ou * 0.12 + currentViseme.oh * 0.1);
 
                 setMorph('mouthClose', 0);
               } else {
@@ -586,11 +576,6 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
                 setMorph('mouthUpperUpLeft', 0);
                 setMorph('mouthUpperUpRight', 0);
                 setMorph('mouthShrugUpper', 0);
-                setMorph('mouthShrugLower', 0);
-                setMorph('mouthLowerDownLeft', 0);
-                setMorph('mouthLowerDownRight', 0);
-                setMorph('mouthStretchLeft', 0);
-                setMorph('mouthStretchRight', 0);
                 setMorph('mouthClose', 0);
               }
             }
