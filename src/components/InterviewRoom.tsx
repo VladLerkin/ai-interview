@@ -381,8 +381,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
           
           {/* Subtitles / Speech Bubble */}
           <div className="absolute bottom-2 md:bottom-8 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-2xl text-center z-10">
-            <div className="glass-panel p-2.5 md:p-4 rounded-2xl animate-in slide-in-from-bottom-4 max-h-[28vh] md:max-h-none overflow-y-auto custom-scrollbar">
-              <div className="text-sm md:text-xl font-medium text-white drop-shadow-md leading-snug">
+            <div className="glass-panel p-3 md:p-4 rounded-2xl animate-in slide-in-from-bottom-4 max-h-[30vh] md:max-h-none overflow-y-auto custom-scrollbar">
+              <div className="text-base md:text-xl font-medium text-white drop-shadow-md leading-relaxed md:leading-snug">
                 {isEvaluating ? (
                   <span className="flex items-center justify-center gap-2 text-primary-400">
                     <Brain className="w-5 h-5 animate-pulse" /> {t('evaluating')}
@@ -441,8 +441,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
           </div>
         </div>
 
-        {/* Action Bar */}
-        <div className="h-24 md:h-32 glass-panel rounded-2xl flex items-center p-3 md:p-4 gap-2 md:gap-4 shrink-0">
+        {/* Action Bar (enlarged input field & text) */}
+        <div className="h-28 md:h-36 glass-panel rounded-2xl flex items-center p-3 md:p-4 gap-2.5 md:gap-4 shrink-0">
           {state.isCompleted ? (
             <div className="w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in">
               <h3 className="text-xl font-bold text-green-400 mb-2">{t('interviewCompleted')}</h3>
@@ -457,7 +457,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
             <>
               <div className="flex-1 h-full relative">
                 <textarea 
-                  className="w-full h-full bg-dark-800/50 border border-gray-700 rounded-xl px-3 py-2 md:px-4 md:py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all text-sm md:text-lg custom-scrollbar"
+                  className="w-full h-full bg-dark-800/50 border border-gray-700 rounded-xl px-3.5 py-2.5 md:px-4 md:py-3 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none transition-all text-base md:text-lg custom-scrollbar placeholder:text-gray-400"
                   placeholder={isListening ? t('listening') : t('typeAnswer')}
                   value={transcript + (interimTranscript ? ' ' + interimTranscript : '')}
                   onChange={(e) => {
@@ -468,7 +468,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5 md:gap-2 h-full justify-center w-28 md:w-32 shrink-0">
+              <div className="flex flex-col gap-2 h-full justify-center w-28 md:w-36 shrink-0">
                 <button 
                   onClick={toggleListen}
                   disabled={isEvaluating || isSpeaking}
