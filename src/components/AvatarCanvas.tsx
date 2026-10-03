@@ -251,14 +251,13 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
               const headPos = new THREE.Vector3();
               headBone.getWorldPosition(headPos);
               const isMobile = window.innerWidth < 768;
-              const camDistance = isMobile ? 0.78 : 0.65;
-              const lookDownOffset = isMobile ? 0.05 : 0;
-              // Position camera in front of the head; on mobile frame slightly higher to leave lower third clear for subtitles
-              camera.position.set(headPos.x, headPos.y, headPos.z + camDistance);
-              camera.lookAt(headPos.x, headPos.y - lookDownOffset, headPos.z);
+              const camDistance = isMobile ? 0.67 : 0.65;
+              const targetY = isMobile ? headPos.y + 0.025 : headPos.y;
+              camera.position.set(headPos.x, targetY, headPos.z + camDistance);
+              camera.lookAt(headPos.x, targetY, headPos.z);
             } else {
               const isMobile = window.innerWidth < 768;
-              camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * (isMobile ? 0.68 : 0.55));
+              camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * (isMobile ? 0.6 : 0.55));
               camera.lookAt(0, fallbackHeadY - size.y * 0.2, 0);
             }
 
@@ -613,10 +612,10 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         const headPos = new THREE.Vector3();
         head.getWorldPosition(headPos);
         const isMobile = w < 768;
-        const camDistance = isMobile ? 0.78 : 0.65;
-        const lookDownOffset = isMobile ? 0.05 : 0;
-        camera.position.set(headPos.x, headPos.y, headPos.z + camDistance);
-        camera.lookAt(headPos.x, headPos.y - lookDownOffset, headPos.z);
+        const camDistance = isMobile ? 0.67 : 0.65;
+        const targetY = isMobile ? headPos.y + 0.025 : headPos.y;
+        camera.position.set(headPos.x, targetY, headPos.z + camDistance);
+        camera.lookAt(headPos.x, targetY, headPos.z);
       }
     };
     window.addEventListener('resize', handleResize);
