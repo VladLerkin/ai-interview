@@ -251,13 +251,13 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
               const headPos = new THREE.Vector3();
               headBone.getWorldPosition(headPos);
               const isMobile = window.innerWidth < 768;
-              const camDistance = isMobile ? 0.80 : 0.65;
-              const targetY = isMobile ? headPos.y + 0.045 : headPos.y;
+              const camDistance = isMobile ? 0.95 : 0.65;
+              const targetY = isMobile ? headPos.y + 0.01 : headPos.y;
               camera.position.set(headPos.x, targetY, headPos.z + camDistance);
               camera.lookAt(headPos.x, targetY, headPos.z);
             } else {
               const isMobile = window.innerWidth < 768;
-              camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * (isMobile ? 0.72 : 0.55));
+              camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * (isMobile ? 0.82 : 0.55));
               camera.lookAt(0, fallbackHeadY - size.y * 0.2, 0);
             }
 
@@ -612,8 +612,8 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         const headPos = new THREE.Vector3();
         head.getWorldPosition(headPos);
         const isMobile = w < 768;
-        const camDistance = isMobile ? 0.80 : 0.65;
-        const targetY = isMobile ? headPos.y + 0.045 : headPos.y;
+        const camDistance = isMobile ? 0.95 : 0.65;
+        const targetY = isMobile ? headPos.y + 0.01 : headPos.y;
         camera.position.set(headPos.x, targetY, headPos.z + camDistance);
         camera.lookAt(headPos.x, targetY, headPos.z);
       }
