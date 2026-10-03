@@ -1,8 +1,9 @@
 export type InterviewType = 'hr_screening' | 'technical' | 'system_design' | 'behavioral' | 'full_loop';
 export type Language = 'en-US' | 'en-GB' | 'ru-RU' | 'de-DE';
+export type Provider = 'openai' | 'anthropic' | 'gemini' | 'deepseek';
 
 export interface InterviewConfig {
-  provider: 'openai' | 'anthropic' | 'gemini' | 'deepseek';
+  provider: Provider;
   apiKey: string;
   resumeText: string;
   jobDescription: string;
@@ -11,4 +12,28 @@ export interface InterviewConfig {
   language: Language;
   avatarUrl?: string;
   resumeFileName?: string;
+}
+
+export type SpeakerRole = 'candidate' | 'interviewer';
+
+export interface HistoryEntry {
+  role: SpeakerRole;
+  content: string;
+}
+
+export interface InterviewFeedback {
+  grammarCorrections: string[];
+  vocabularySuggestions: string[];
+  contentScore: number;
+  comment: string;
+  suggestedAnswer: string;
+}
+
+/** The subset of agent state that the UI renders and persists between reloads. */
+export interface InterviewSnapshot {
+  history: HistoryEntry[];
+  interviewStage: string;
+  nextInterviewerSpeech: string;
+  latestFeedback: InterviewFeedback | null;
+  isCompleted?: boolean;
 }

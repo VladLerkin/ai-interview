@@ -1,75 +1,52 @@
-export type LanguageCode = 'en-US' | 'en-GB' | 'ru-RU' | 'de-DE';
+import type { Language } from '../types/interview';
 
-export const translations = {
-  'en-US': {
-    setupTitle: 'Interview Setup',
-    selectType: 'Select Interview Type',
-    continue: 'Continue with',
-    apiSettings: 'API Settings',
-    provider: 'Provider',
-    language: 'Language & Accent',
-    apiKey: 'API Key',
-    jobDetails: 'Job Details',
-    jobDesc: 'Job Description',
-    jobDescPlaceholder: 'Paste the job description here...',
-    companyInfo: 'Company Info (Optional)',
-    companyPlaceholder: 'e.g., Tech Startup, Series A, Fast-paced',
-    resume: 'Resume',
-    uploadResume: 'Upload Resume (PDF)',
-    startInterview: 'Start Interview',
-    suggestedAnswer: 'Suggested Answer',
-    awaitingAnswer: 'Answer a question to see an ideal response here.',
-    evaluating: 'Evaluating your response...',
-    preparing: 'Preparing interview...',
-    stage: 'Stage',
-    end: 'End',
-    interviewCompleted: 'Interview Completed!',
-    returnToSetup: 'Return to Setup',
-    typeAnswer: 'Type your answer or use microphone...',
-    listening: 'Listening...',
-    mic: 'Mic',
-    submit: 'Submit',
-    liveFeedback: 'Live Feedback',
-    score: 'Score',
-    feedback: 'Feedback',
-    grammar: 'Grammar & Tone',
-    vocabulary: 'Vocabulary',
-    noFeedback: 'Complete a response to see live feedback and scoring.'
-  },
+const en = {
+  setupTitle: 'Interview Setup',
+  selectType: 'Select Interview Type',
+  continue: 'Continue with',
+  apiSettings: 'API Settings',
+  provider: 'Provider',
+  language: 'Language & Accent',
+  apiKey: 'API Key',
+  jobDetails: 'Job Details',
+  jobDesc: 'Job Description',
+  jobDescPlaceholder: 'Paste the job description here...',
+  companyInfo: 'Company Info (Optional)',
+  companyPlaceholder: 'e.g., Tech Startup, Series A, Fast-paced',
+  resume: 'Resume',
+  uploadResume: 'Upload Resume (PDF)',
+  startInterview: 'Start Interview',
+  suggestedAnswer: 'Suggested Answer',
+  awaitingAnswer: 'Answer a question to see an ideal response here.',
+  evaluating: 'Evaluating your response...',
+  preparing: 'Preparing interview...',
+  stage: 'Stage',
+  end: 'End',
+  interviewCompleted: 'Interview Completed!',
+  returnToSetup: 'Return to Setup',
+  typeAnswer: 'Type your answer or use microphone...',
+  listening: 'Listening...',
+  mic: 'Mic',
+  submit: 'Submit',
+  liveFeedback: 'Live Feedback',
+  score: 'Score',
+  feedback: 'Feedback',
+  grammar: 'Grammar & Tone',
+  vocabulary: 'Vocabulary',
+  noFeedback: 'Complete a response to see live feedback and scoring.',
+  interviewHistory: 'Interview History',
+  closingRemark: "Thank you for your time today. It was great getting to know you. We'll be in touch!",
+};
+
+export type TranslationKey = keyof typeof en;
+type Dictionary = Record<TranslationKey, string>;
+
+const translations: Record<Language, Dictionary> = {
+  'en-US': en,
   'en-GB': {
-    setupTitle: 'Interview Setup',
-    selectType: 'Select Interview Type',
-    continue: 'Continue with',
-    apiSettings: 'API Settings',
-    provider: 'Provider',
-    language: 'Language & Accent',
-    apiKey: 'API Key',
-    jobDetails: 'Job Details',
-    jobDesc: 'Job Description',
-    jobDescPlaceholder: 'Paste the job description here...',
-    companyInfo: 'Company Info (Optional)',
-    companyPlaceholder: 'e.g., Tech Startup, Series A, Fast-paced',
+    ...en,
     resume: 'CV',
     uploadResume: 'Upload CV (PDF)',
-    startInterview: 'Start Interview',
-    suggestedAnswer: 'Suggested Answer',
-    awaitingAnswer: 'Answer a question to see an ideal response here.',
-    evaluating: 'Evaluating your response...',
-    preparing: 'Preparing interview...',
-    stage: 'Stage',
-    end: 'End',
-    interviewCompleted: 'Interview Completed!',
-    returnToSetup: 'Return to Setup',
-    typeAnswer: 'Type your answer or use microphone...',
-    listening: 'Listening...',
-    mic: 'Mic',
-    submit: 'Submit',
-    liveFeedback: 'Live Feedback',
-    score: 'Score',
-    feedback: 'Feedback',
-    grammar: 'Grammar & Tone',
-    vocabulary: 'Vocabulary',
-    noFeedback: 'Complete a response to see live feedback and scoring.'
   },
   'ru-RU': {
     setupTitle: 'Настройка интервью',
@@ -104,7 +81,9 @@ export const translations = {
     feedback: 'Отзыв',
     grammar: 'Грамматика и тон',
     vocabulary: 'Словарный запас',
-    noFeedback: 'Ответьте на вопрос, чтобы получить оценку.'
+    noFeedback: 'Ответьте на вопрос, чтобы получить оценку.',
+    interviewHistory: 'История интервью',
+    closingRemark: 'Спасибо, что уделили время. Было приятно познакомиться. Мы свяжемся с вами!',
   },
   'de-DE': {
     setupTitle: 'Interview Einrichtung',
@@ -139,10 +118,16 @@ export const translations = {
     feedback: 'Feedback',
     grammar: 'Grammatik & Ton',
     vocabulary: 'Wortschatz',
-    noFeedback: 'Schließen Sie eine Antwort ab, um Live-Feedback zu sehen.'
-  }
+    noFeedback: 'Schließen Sie eine Antwort ab, um Live-Feedback zu sehen.',
+    interviewHistory: 'Interview-Verlauf',
+    closingRemark: 'Vielen Dank für Ihre Zeit heute. Es war schön, Sie kennenzulernen. Wir melden uns bei Ihnen!',
+  },
 };
 
-export const getTranslation = (lang: LanguageCode, key: keyof typeof translations['en-US']) => {
-  return translations[lang]?.[key] || translations['en-US'][key] || key;
-};
+export const getTranslation = (lang: Language, key: TranslationKey): string =>
+  translations[lang]?.[key] ?? en[key] ?? key;
+
+export type Translator = (key: TranslationKey) => string;
+
+/** Returns a `t(key)` function bound to the given language. */
+export const createTranslator = (lang: Language): Translator => (key) => getTranslation(lang, key);
