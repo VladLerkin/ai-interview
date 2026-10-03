@@ -177,11 +177,21 @@ export class SpeechVisemeTracker {
         });
         currentTime += stepDuration;
       } else {
-        // Distribute characters across this word's duration
-        const charDuration = stepDuration / Math.max(1, step.chars.length);
+        // In natural speech, vowels carry ~70% of syllable duration while consonants are brief
+        const weights: number[] = [];
+        let totalWeight = 0;
+        for (let i = 0; i < step.chars.length; i++) {
+          const char = step.chars[i].toLowerCase();
+          const isVowel = 'aeiouáéíóúàèìòùâêîôûäëïöüаеёиоуыэюяაეიოუ'.includes(char);
+          const w = isVowel ? 2.3 : 1.0;
+          weights.push(w);
+          totalWeight += w;
+        }
+
         for (let i = 0; i < step.chars.length; i++) {
           const char = step.chars[i];
           const viseme = charToViseme(char);
+          const charDuration = (weights[i] / totalWeight) * stepDuration;
           const end = currentTime + charDuration;
 
           this.queue.push({

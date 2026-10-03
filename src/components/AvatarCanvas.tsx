@@ -534,17 +534,29 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
               // Lip sync via MetaPerson/Oculus Visemes & ARKit
               if (speakingRef.current) {
                 // Oculus/ReadyPlayerMe standard visemes (clean natural articulation)
-                setMorph('aa', currentViseme.aa * 0.55); 
+                setMorph('aa', currentViseme.aa * 0.6); 
                 setMorph('E', currentViseme.ee * 0.5);
                 setMorph('ih', currentViseme.ih * 0.4);
-                setMorph('oh', currentViseme.oh * 0.55);
-                setMorph('ou', currentViseme.ou * 0.5);
+                setMorph('oh', currentViseme.oh * 0.85);
+                setMorph('ou', currentViseme.ou * 0.85);
                 setMorph('PP', 0);
                 
-                // ARKit standard blendshapes (natural jaw & lip rounding, perfectly resting lips)
-                setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.25) * 0.35);
-                setMorph('mouthPucker', currentViseme.ou * 0.5);
-                setMorph('mouthFunnel', currentViseme.oh * 0.4);
+                // ARKit standard blendshapes
+                // Jaw opens naturally on /aa/ and moderately on /oh/
+                setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.2) * 0.45);
+
+                // Expressive lip rounding and tube pucker ("трубочка" for O and U)
+                setMorph('mouthPucker', currentViseme.ou * 0.85 + currentViseme.oh * 0.3);
+                setMorph('mouthFunnel', currentViseme.oh * 0.8 + currentViseme.ou * 0.35);
+                setMorph('mouthRollLower', currentViseme.ou * 0.2);
+                setMorph('mouthRollUpper', currentViseme.ou * 0.2);
+
+                // Subtle upper lip mobility: lifts gently on open vowels so it is alive, not frozen
+                const upperLipLift = currentViseme.aa * 0.12 + currentViseme.ee * 0.08 + currentViseme.ih * 0.06;
+                setMorph('mouthUpperUpLeft', upperLipLift);
+                setMorph('mouthUpperUpRight', upperLipLift);
+                setMorph('mouthShrugUpper', currentViseme.aa * 0.1 + currentViseme.ou * 0.22 + currentViseme.oh * 0.16);
+
                 setMorph('mouthClose', 0);
               } else {
                 setMorph('aa', 0);
@@ -556,6 +568,11 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
                 setMorph('jawOpen', 0);
                 setMorph('mouthPucker', 0);
                 setMorph('mouthFunnel', 0);
+                setMorph('mouthRollLower', 0);
+                setMorph('mouthRollUpper', 0);
+                setMorph('mouthUpperUpLeft', 0);
+                setMorph('mouthUpperUpRight', 0);
+                setMorph('mouthShrugUpper', 0);
                 setMorph('mouthClose', 0);
               }
             }
