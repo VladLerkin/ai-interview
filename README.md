@@ -28,7 +28,7 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
    ```bash
    npm run dev
    ```
-3. Open `http://localhost:5173` in your browser.
+3. Open `http://localhost:5174` in your browser.
 
 ## Project Structure
 
