@@ -1,7 +1,7 @@
 import { Brain, Square, Volume2 } from 'lucide-react';
 import { formatStageName } from '../../agent/stages';
 import type { Translator } from '../../lib/i18n';
-import { AvatarCanvas } from '../avatar/AvatarCanvas';
+import { AvatarCanvas } from '../AvatarCanvas';
 import type { AvatarEmotion } from '../avatar/emotions';
 
 interface InterviewerStageProps {

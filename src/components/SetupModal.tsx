@@ -103,7 +103,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   }, []);
 
   useEffect(() => {
-    getStoredData('interviewConfig').then((data: InterviewConfig) => {
+    getStoredData('interviewConfig').then((data) => {
       if (data) {
         if (data.provider) setProvider(data.provider);
         if (data.apiKey) setApiKey(data.apiKey);
