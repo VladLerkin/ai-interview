@@ -537,25 +537,25 @@ export const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
                 setMorph('aa', currentViseme.aa * 0.6); 
                 setMorph('E', currentViseme.ee * 0.5);
                 setMorph('ih', currentViseme.ih * 0.4);
-                setMorph('oh', currentViseme.oh * 0.85);
-                setMorph('ou', currentViseme.ou * 0.85);
+                setMorph('oh', currentViseme.oh * 0.6);
+                setMorph('ou', currentViseme.ou * 0.6);
                 setMorph('PP', 0);
                 
                 // ARKit standard blendshapes
                 // Jaw opens naturally on /aa/ and moderately on /oh/
-                setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.2) * 0.45);
+                setMorph('jawOpen', (currentViseme.aa * 0.55 + currentViseme.oh * 0.18) * 0.45);
 
-                // Expressive lip rounding and tube pucker ("трубочка" for O and U)
-                setMorph('mouthPucker', currentViseme.ou * 0.85 + currentViseme.oh * 0.3);
-                setMorph('mouthFunnel', currentViseme.oh * 0.8 + currentViseme.ou * 0.35);
-                setMorph('mouthRollLower', currentViseme.ou * 0.2);
-                setMorph('mouthRollUpper', currentViseme.ou * 0.2);
+                // Natural lip rounding and tube pucker for O and U (balanced, not excessive)
+                setMorph('mouthPucker', currentViseme.ou * 0.55 + currentViseme.oh * 0.2);
+                setMorph('mouthFunnel', currentViseme.oh * 0.5 + currentViseme.ou * 0.22);
+                setMorph('mouthRollLower', currentViseme.ou * 0.1);
+                setMorph('mouthRollUpper', currentViseme.ou * 0.1);
 
                 // Subtle upper lip mobility: lifts gently on open vowels so it is alive, not frozen
                 const upperLipLift = currentViseme.aa * 0.12 + currentViseme.ee * 0.08 + currentViseme.ih * 0.06;
                 setMorph('mouthUpperUpLeft', upperLipLift);
                 setMorph('mouthUpperUpRight', upperLipLift);
-                setMorph('mouthShrugUpper', currentViseme.aa * 0.1 + currentViseme.ou * 0.22 + currentViseme.oh * 0.16);
+                setMorph('mouthShrugUpper', currentViseme.aa * 0.1 + currentViseme.ou * 0.12 + currentViseme.oh * 0.1);
 
                 setMorph('mouthClose', 0);
               } else {
