@@ -1,6 +1,68 @@
 /** Pure helpers around the Web Speech API (TTS + STT). No React here. */
 
-const PREFERRED_VOICE_HINTS = ['samantha', 'karen', 'female', 'zira', 'milena', 'google'];
+const PREFERRED_FEMALE_HINTS = [
+  'female',
+  'samantha',
+  'karen',
+  'zira',
+  'milena',
+  'monica',
+  'paulina',
+  'ximena',
+  'elvira',
+  'dalia',
+  'laura',
+  'sofia',
+  'lucia',
+  'victoria',
+  'marisol',
+  'katja',
+  'denise',
+  'xiaoxiao',
+  'nanami',
+  'eka',
+  'svetlana',
+  'ava',
+  'sonia',
+  'jenny',
+  'libby',
+  'serena',
+  'fiona',
+  'stephanie',
+  'audrey',
+  'amelie',
+  'clara',
+  'marie',
+  'tingting',
+  'kyoko',
+  'otohe',
+  'google',
+];
+
+const KNOWN_MALE_HINTS = [
+  ' male',
+  'jorge',
+  'diego',
+  'juan',
+  'alvaro',
+  'carlos',
+  'miguel',
+  'daniel',
+  'oliver',
+  'george',
+  'david',
+  'guy',
+  'stefan',
+  'henri',
+  'thomas',
+  'yuri',
+  'pavel',
+  'alexander',
+  'naoki',
+  'keita',
+  'giorgi',
+  'levan',
+];
 
 export const isAndroid = (): boolean => /Android/i.test(navigator.userAgent);
 
@@ -15,19 +77,34 @@ export const unlockSpeechSynthesis = (): void => {
   window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
 };
 
-/** Picks a pleasant (preferably female / Google) voice for the language, falling back to any match. */
+/** Picks a pleasant (preferably female / natural) voice for the language, falling back to any match. */
 export const pickVoice = (voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | undefined => {
-  const langPrefix = lang.split('-')[0];
-  const matchesLang = (v: SpeechSynthesisVoice) => v.lang === lang || v.lang.replace('_', '-').startsWith(lang);
-  const hasPreferredName = (v: SpeechSynthesisVoice) => {
+  const langPrefix = lang.split('-')[0].toLowerCase();
+  const normalizedLang = lang.toLowerCase().replace('_', '-');
+  const matchesLang = (v: SpeechSynthesisVoice) => {
+    const vLang = v.lang.toLowerCase().replace('_', '-');
+    return vLang === normalizedLang || vLang.startsWith(normalizedLang);
+  };
+  const matchesPrefix = (v: SpeechSynthesisVoice) => {
+    const vLang = v.lang.toLowerCase().replace('_', '-');
+    return vLang.startsWith(langPrefix);
+  };
+  const isPreferredFemale = (v: SpeechSynthesisVoice) => {
     const name = v.name.toLowerCase();
-    return PREFERRED_VOICE_HINTS.some((hint) => name.includes(hint));
+    return PREFERRED_FEMALE_HINTS.some((hint) => name.includes(hint));
+  };
+  const isMale = (v: SpeechSynthesisVoice) => {
+    const name = v.name.toLowerCase();
+    return KNOWN_MALE_HINTS.some((hint) => name.includes(hint));
   };
 
   return (
-    voices.find((v) => matchesLang(v) && hasPreferredName(v)) ||
-    voices.find((v) => v.lang === lang) ||
-    voices.find((v) => v.lang.startsWith(langPrefix))
+    voices.find((v) => matchesLang(v) && isPreferredFemale(v)) ||
+    voices.find((v) => matchesLang(v) && !isMale(v)) ||
+    voices.find((v) => matchesPrefix(v) && isPreferredFemale(v)) ||
+    voices.find((v) => matchesPrefix(v) && !isMale(v)) ||
+    voices.find(matchesLang) ||
+    voices.find(matchesPrefix)
   );
 };
 

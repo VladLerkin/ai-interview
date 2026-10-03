@@ -5,6 +5,7 @@ import type { InterviewConfig } from '../types/interview';
 import { createInterviewAgent } from '../agent/interviewGraph';
 import { Mic, MicOff, Send, Brain, CheckCircle2, AlertTriangle, MessageSquare, Volume2, Lightbulb, Square } from 'lucide-react';
 import { getTranslation } from '../lib/i18n';
+import { pickVoice } from '../lib/speech';
 import { globalSpeechVisemeTracker, playEdgeSpeech, stopEdgeSpeech } from '../lib/audio';
 
 import { getStoredData, setStoredData } from '../lib/store';
@@ -198,20 +199,8 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       globalSpeechVisemeTracker.reset();
       globalSpeechVisemeTracker.setActive(true);
 
-      const voices = synth.getVoices();
       const targetLang = config.language || 'en-US';
-      const langPrefix = targetLang.split('-')[0];
-
-      const preferredVoice = voices.find(
-        (v) =>
-          (v.lang === targetLang || v.lang.replace('_', '-').startsWith(targetLang)) &&
-          (v.name.toLowerCase().includes('samantha') ||
-            v.name.toLowerCase().includes('karen') ||
-            v.name.toLowerCase().includes('female') ||
-            v.name.toLowerCase().includes('zira') ||
-            v.name.toLowerCase().includes('milena') ||
-            v.name.toLowerCase().includes('google'))
-      ) || voices.find((v) => v.lang === targetLang) || voices.find((v) => v.lang.startsWith(langPrefix));
+      const preferredVoice = pickVoice(synth.getVoices(), targetLang);
 
       // Safer sentence split that works on older Safari (no lookbehind)
       const sentences = text.match(/[^.!?…]+[.!?…]*/g)?.map((s) => s.trim()).filter((s) => s.length > 0) || [text];

@@ -5,13 +5,14 @@ import type { IncomingMessage, ServerResponse } from 'http';
 function getEdgeVoice(lang: string = 'en-US'): string {
   const l = lang.toLowerCase();
   if (l.startsWith('ru')) return 'ru-RU-SvetlanaNeural';
-  if (l.startsWith('es')) return 'es-ES-ElviraNeural';
+  if (l.startsWith('es')) return 'es-ES-XimenaNeural';
   if (l.startsWith('de')) return 'de-DE-KatjaNeural';
   if (l.startsWith('fr')) return 'fr-FR-DeniseNeural';
   if (l.startsWith('zh')) return 'zh-CN-XiaoxiaoNeural';
   if (l.startsWith('ja')) return 'ja-JP-NanamiNeural';
   if (l.startsWith('ka')) return 'ka-GE-EkaNeural';
-  return 'en-US-JennyNeural';
+  if (l.startsWith('en-gb') || l === 'en-uk') return 'en-GB-SoniaNeural';
+  return 'en-US-AvaNeural';
 }
 
 /**
