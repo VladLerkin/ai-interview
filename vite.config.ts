@@ -24,6 +24,9 @@ export default defineConfig({
         short_name: 'AI Interview',
         description: 'Practice English Interviews with a 3D AI Agent',
         theme_color: '#ffffff',
+        background_color: '#0f172a',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: '/icon-192.png',
