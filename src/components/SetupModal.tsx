@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, Download } from 'lucide-react';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight } from 'lucide-react';
 import type { InterviewType, InterviewConfig, Language } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
