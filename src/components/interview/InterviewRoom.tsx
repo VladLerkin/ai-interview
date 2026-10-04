@@ -38,12 +38,12 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   });
 
   return (
-    <div className="h-[100dvh] md:h-screen w-full flex flex-col md:flex-row bg-dark-900 p-2 md:p-4 gap-2 md:gap-4 overflow-y-auto overflow-x-hidden">
+    <div className="h-[100dvh] lg:h-screen w-full flex flex-col lg:flex-row bg-dark-900 p-2 lg:p-4 gap-2 lg:gap-4 overflow-y-auto overflow-x-hidden">
       {/* Left Panel: Suggested Answer */}
       <SuggestedAnswerPanel suggestedAnswer={snapshot.latestFeedback?.suggestedAnswer} t={t} />
 
       {/* Center Stage: 3D Avatar */}
-      <div className="flex-1 flex flex-col gap-2 md:gap-4 relative order-1 lg:order-2 shrink-0">
+      <div className="flex-1 flex flex-col gap-2 lg:gap-4 relative order-1 lg:order-2 shrink-0 min-h-[85dvh] lg:min-h-0">
         <InterviewerStage
           avatarUrl={config.avatarUrl}
           emotion={emotion}
