@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { InterviewConfig } from './types/interview';
 import { SetupModal } from './components/SetupModal';
-import { InterviewRoom } from './components/InterviewRoom';
+import { InterviewRoom } from './components/interview/InterviewRoom';
 import { getStoredData, setStoredData, deleteStoredData } from './lib/store';
 
 function App() {

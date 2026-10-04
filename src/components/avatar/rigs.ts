@@ -84,6 +84,29 @@ const GLB_ARM_POSE: Record<string, number> = {
   rightforearm: -0.2,
 };
 
+export const MOBILE_BREAKPOINT_PX = 768;
+
+/**
+ * Portrait close-up in front of the head bone.
+ * Mobile pulls back a bit (0.95) at eye level to avoid close-up mesh artifacts
+ * (hair parting transparency) and leave headroom above the subtitles.
+ */
+function frameCameraOnHead(head: THREE.Object3D, camera: THREE.PerspectiveCamera, isMobile: boolean) {
+  const headPos = new THREE.Vector3();
+  head.getWorldPosition(headPos);
+  const camDistance = isMobile ? 0.95 : 0.65;
+  const targetY = isMobile ? headPos.y + 0.01 : headPos.y;
+  camera.position.set(headPos.x, targetY, headPos.z + camDistance);
+  camera.lookAt(headPos.x, targetY, headPos.z);
+}
+
+/** Re-frames the camera for the current viewport width (GLB rigs with a head bone only). */
+export function reframeCamera(rig: AvatarRig, camera: THREE.PerspectiveCamera, viewportWidth: number) {
+  if (rig.kind === 'glb' && rig.head) {
+    frameCameraOnHead(rig.head, camera, viewportWidth < MOBILE_BREAKPOINT_PX);
+  }
+}
+
 function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCamera): GlbRig {
   console.log('[GLB] Loading as standard GLB model');
   const root = gltf.scene;
@@ -124,14 +147,11 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
   console.log('[GLB] Morphable meshes found:', meshes.length);
 
   // Frame camera based on head bone
+  const isMobile = window.innerWidth < MOBILE_BREAKPOINT_PX;
   if (headBone) {
-    const headPos = new THREE.Vector3();
-    headBone.getWorldPosition(headPos);
-    // Position camera directly in front of the head and look exactly at the head
-    camera.position.set(headPos.x, headPos.y, headPos.z + 0.65);
-    camera.lookAt(headPos.x, headPos.y, headPos.z);
+    frameCameraOnHead(headBone, camera, isMobile);
   } else {
-    camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * 0.55);
+    camera.position.set(0, fallbackHeadY - size.y * 0.15, size.y * (isMobile ? 0.82 : 0.55));
     camera.lookAt(0, fallbackHeadY - size.y * 0.2, 0);
   }
 
@@ -218,9 +238,9 @@ function animateVrm(rig: VrmRig, f: FaceFrame) {
 const GLB_SPEECH_MORPHS = [
   'aa', 'E', 'ih', 'oh', 'ou', 'PP',
   'jawOpen', 'mouthPucker', 'mouthFunnel',
-  'mouthUpperUpLeft', 'mouthUpperUpRight',
-  'mouthLowerDownLeft', 'mouthLowerDownRight',
-  'cheekPuff',
+  'mouthRollLower', 'mouthRollUpper',
+  'mouthUpperUpLeft', 'mouthUpperUpRight', 'mouthShrugUpper',
+  'mouthClose',
 ];
 
 // GLB Morph-target blendshapes (Oculus Visemes + ARKit eyes)
@@ -264,29 +284,31 @@ function applyGlbMorphs(mesh: THREE.Mesh, f: FaceFrame) {
     return;
   }
 
-  // Lip sync via MetaPerson/Oculus Visemes
-  // Wide/open visemes (keep low to avoid huge jaw drop)
-  setMorph('aa', v.aa * 0.4);
-  setMorph('E', v.ee * 0.4);
+  // Lip sync via MetaPerson / Oculus / ReadyPlayerMe standard visemes (clean natural articulation)
+  setMorph('aa', v.aa * 0.6);
+  setMorph('E', v.ee * 0.5);
   setMorph('ih', v.ih * 0.4);
-  // Pucker/funnel visemes (reduced to avoid excessive lip pursing)
   setMorph('oh', v.oh * 0.6);
   setMorph('ou', v.ou * 0.6);
-  setMorph('PP', v.aa < 0.1 && v.oh < 0.1 ? 0.25 : 0);
+  setMorph('PP', 0);
 
-  // Fallbacks if model uses ARKit instead
-  setMorph('jawOpen', (v.aa + v.oh) * 0.15);
-  setMorph('mouthPucker', v.ou * 0.6);
-  setMorph('mouthFunnel', v.oh * 0.5);
+  // ARKit standard blendshapes
+  // Jaw opens naturally on /aa/ and moderately on /oh/
+  setMorph('jawOpen', (v.aa * 0.55 + v.oh * 0.18) * 0.45);
 
-  // Gentle upper lip movement (prevent exposing gums)
-  const upperLipLift = (v.aa + v.ee + v.ih) * 0.3;
+  // Natural lip rounding and tube pucker for O and U (balanced, not excessive)
+  setMorph('mouthPucker', v.ou * 0.55 + v.oh * 0.2);
+  setMorph('mouthFunnel', v.oh * 0.5 + v.ou * 0.22);
+  setMorph('mouthRollLower', v.ou * 0.1);
+  setMorph('mouthRollUpper', v.ou * 0.1);
+
+  // Subtle upper lip mobility: lifts gently on open vowels so it is alive, not frozen
+  const upperLipLift = v.aa * 0.12 + v.ee * 0.08 + v.ih * 0.06;
   setMorph('mouthUpperUpLeft', upperLipLift);
   setMorph('mouthUpperUpRight', upperLipLift);
+  setMorph('mouthShrugUpper', v.aa * 0.1 + v.ou * 0.12 + v.oh * 0.1);
 
-  setMorph('mouthLowerDownLeft', (v.aa + v.oh) * 0.2);
-  setMorph('mouthLowerDownRight', (v.aa + v.oh) * 0.2);
-  setMorph('cheekPuff', v.ou * 0.15);
+  setMorph('mouthClose', 0);
 }
 
 function animateGlb(rig: GlbRig, f: FaceFrame) {

@@ -93,7 +93,7 @@ interface FeedbackPanelProps {
 }
 
 export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({ feedback, history, onEnd, t }) => (
-  <div className="flex w-full md:w-96 flex-col gap-4 order-4 md:order-3 min-h-[400px] md:min-h-0 shrink-0">
+  <div className="flex w-full md:w-96 flex-col gap-4 order-4 md:order-3 min-h-[350px] md:min-h-0 shrink-0 mt-2 md:mt-0 pb-6 md:pb-0">
     <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col overflow-hidden relative">
       <button
         onClick={onEnd}

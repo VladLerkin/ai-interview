@@ -25,17 +25,17 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
 
 The simulator provides full UI localization, tailored LLM prompt instructions, and natural female neural voices for each supported language:
 
-| Flag | Language (English) | Native Name | Code | Default Neural Voice |
-|:---:|:---|:---|:---:|:---|
-| 🇺🇸 | **English (American)** | American English | `en-US` | `en-US-AvaNeural` |
-| 🇬🇧 | **English (British)** | British English | `en-GB` | `en-GB-SoniaNeural` |
-| 🇷🇺 | **Russian** | Русский | `ru-RU` | `ru-RU-SvetlanaNeural` |
-| 🇪🇸 | **Spanish** | Español | `es-ES` | `es-ES-XimenaNeural` |
-| 🇩🇪 | **German** | Deutsch | `de-DE` | `de-DE-KatjaNeural` |
-| 🇫🇷 | **French** | Français | `fr-FR` | `fr-FR-DeniseNeural` |
-| 🇨🇳 | **Chinese (Simplified)** | 中文 (普通话) | `zh-CN` | `zh-CN-XiaoxiaoNeural` |
-| 🇯🇵 | **Japanese** | 日本語 | `ja-JP` | `ja-JP-NanamiNeural` |
-| 🇬🇪 | **Georgian** | ქართული | `ka-GE` | `ka-GE-EkaNeural` |
+| Flag | Language (English) | Native Name | Code |
+|:---:|:---|:---|:---:|
+| 🇺🇸 | **English (American)** | American English | `en-US` |
+| 🇬🇧 | **English (British)** | British English | `en-GB` |
+| 🇷🇺 | **Russian** | Русский | `ru-RU` |
+| 🇪🇸 | **Spanish** | Español | `es-ES` |
+| 🇩🇪 | **German** | Deutsch | `de-DE` |
+| 🇫🇷 | **French** | Français | `fr-FR` |
+| 🇨🇳 | **Chinese (Simplified)** | 中文 (普通话) | `zh-CN` |
+| 🇯🇵 | **Japanese** | 日本語 | `ja-JP` |
+| 🇬🇪 | **Georgian** | ქართული | `ka-GE` |
 
 ## Getting Started
 
@@ -52,7 +52,7 @@ The simulator provides full UI localization, tailored LLM prompt instructions, a
    ```bash
    npm run dev
    ```
-3. Open `http://localhost:5173` in your browser.
+3. Open `http://localhost:5174` in your browser.
 
 ### Cloudflare Pages Deployment
 The project is built for zero-config deployment on Cloudflare Pages:
@@ -85,8 +85,15 @@ The serverless Edge TTS proxy runs natively via Cloudflare Pages Functions locat
 │   │
 │   ├── components/
 │   │   ├── SetupModal.tsx          # Configuration wizard (type selection, provider, language, CV upload)
-│   │   ├── InterviewRoom.tsx       # Main interview UI (responsive stage, subtitles, controls, feedback)
-│   │   └── AvatarCanvas.tsx        # 3D avatar engine (Three.js, GLB/VRM, visemes, facial expressions)
+│   │   ├── interview/              # Modular interview UI
+│   │   │   ├── InterviewRoom.tsx   # Main interview room orchestrator
+│   │   │   ├── InterviewerStage.tsx# 3D Avatar stage container
+│   │   │   └── AnswerBar.tsx       # Transcript and microphone controls
+│   │   └── avatar/                 # 3D Avatar Engine
+│   │       ├── AvatarCanvas.tsx    # Three.js canvas setup
+│   │       ├── faceAnimator.ts     # Lip-sync & expression engine
+│   │       ├── rigs.ts             # ARKit & VRM morph targets
+│   │       └── visemes.ts          # Phonetic viseme maps
 │   │
 │   ├── agent/
 │   │   ├── interviewGraph.ts       # LangGraph state machine (evaluate → route → formulate question)

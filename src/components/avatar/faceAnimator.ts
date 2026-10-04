@@ -1,6 +1,6 @@
 import { getTargetEmotionWeights, NEUTRAL_EMOTION_WEIGHTS, type AvatarEmotion, type EmotionWeights } from './emotions';
-import { pickSyllable, VISEME_SILENCE, type Viseme } from './visemes';
-import { globalAudioAnalyser, globalSpeechVisemeTracker } from '../../lib/audio';
+import { pickSyllable, scaleViseme } from './visemes';
+import { globalAudioAnalyser, globalSpeechVisemeTracker, VISEME_SILENCE, type Viseme } from '../../lib/audio';
 
 // ── Helper: lerp ────────────────────────────────────────────────────
 export function lerp(current: number, target: number, speed: number, dt: number): number {
@@ -11,6 +11,10 @@ const VISEME_LERP_SPEED = 14;
 const EMOTION_LERP_SPEED = 3;
 const GAZE_LERP_SPEED = 3;
 const BLINK_DURATION_S = 0.12;
+/** Lower bound for envelope modulation so phonetic shapes never fully vanish mid-word. */
+const MIN_SPEECH_ENERGY = 0.12;
+/** Below this energy random syllables are not scaled by the audio envelope. */
+const ENERGY_GATE = 0.05;
 
 /** Model-agnostic facial state for a single frame. Rigs translate it into bones / blendshapes. */
 export interface FaceFrame {
@@ -57,18 +61,22 @@ export function createFaceAnimator() {
 
     // 1. Viseme Lip Sync
     if (speaking) {
-      const fftViseme = globalAudioAnalyser.active ? globalAudioAnalyser.getViseme() : null;
       const speechViseme = globalSpeechVisemeTracker.getCurrentViseme();
+      const audioActive = globalAudioAnalyser.active;
+      const audioEnergy = audioActive ? globalAudioAnalyser.getAudioEnergy() : 1.0;
 
-      if (fftViseme) {
-        targetViseme = { ...fftViseme };
-      } else if (speechViseme) {
-        targetViseme = { ...speechViseme };
+      if (speechViseme) {
+        // Modulate the phonetic viseme by the speech audio envelope:
+        // in silent pauses or between sentences the mouth closes naturally.
+        const effectiveEnergy = audioActive ? Math.max(MIN_SPEECH_ENERGY, audioEnergy) : 1.0;
+        targetViseme = scaleViseme(speechViseme, effectiveEnergy);
       } else {
+        // No phonetic timeline: random syllables, modulated by voice energy when available.
         visemeHoldRemaining -= dt * 1000;
         if (visemeHoldRemaining <= 0) {
           const syl = pickSyllable();
-          targetViseme = { ...syl.viseme };
+          const useEnergy = audioActive && audioEnergy > ENERGY_GATE;
+          targetViseme = useEnergy ? scaleViseme(syl.viseme, audioEnergy) : { ...syl.viseme };
           visemeHoldRemaining = syl.holdMs;
         }
       }

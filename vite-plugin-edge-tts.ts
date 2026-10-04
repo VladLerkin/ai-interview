@@ -64,7 +64,7 @@ export function edgeTtsPlugin(): Plugin {
           });
 
           audioStream.pipe(res);
-          audioStream.on('error', (err) => {
+          audioStream.on('error', (err: any) => {
             console.error('[Edge-TTS] Stream error:', err);
             if (!res.headersSent) {
               res.statusCode = 500;
