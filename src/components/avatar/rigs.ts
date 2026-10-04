@@ -28,6 +28,7 @@ interface GlbRig {
   spine: THREE.Bone | null;
   spineInitRot: THREE.Euler | null;
   mixer: THREE.AnimationMixer | null;
+  armNodes: { arm: THREE.Bone; forearm: THREE.Bone }[];
 }
 
 const isGlbUrl = (url: string) => {
@@ -76,11 +77,7 @@ function setupVrmRig(vrm: VRM, scene: THREE.Scene): VrmRig {
   };
 }
 
-/** Rotations that bring common GLB rigs down from T-pose (requires full XYZ to avoid twisting). */
-const GLB_ARM_POSE: Record<string, [number, number, number]> = {
-  leftarm: [0.12, -0.02, -2.9],
-  rightarm: [0.12, 0.02, 2.9]
-};
+
 
 export const MOBILE_BREAKPOINT_PX = 768;
 
@@ -123,6 +120,11 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
   let head: THREE.Bone | null = null;
   let spine: THREE.Bone | null = null;
 
+  let leftArm: THREE.Bone | null = null;
+  let leftForeArm: THREE.Bone | null = null;
+  let rightArm: THREE.Bone | null = null;
+  let rightForeArm: THREE.Bone | null = null;
+
   root.traverse((child) => {
     if (child instanceof THREE.Mesh && child.morphTargetDictionary) {
       meshes.push(child);
@@ -134,14 +136,16 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
       if (name.includes('head') && !name.includes('headtop')) head = child;
       if (name.includes('spine') && !name.includes('spine1') && !name.includes('spine2')) spine = child;
 
-      // Lower arms from T-pose (strict match to avoid ForeArm1/2)
-      for (const [key, rot] of Object.entries(GLB_ARM_POSE)) {
-        if (name === key) {
-          child.rotation.set(rot[0], rot[1], rot[2]);
-        }
-      }
+      if (name === 'leftarm') leftArm = child;
+      if (name === 'leftforearm') leftForeArm = child;
+      if (name === 'rightarm') rightArm = child;
+      if (name === 'rightforearm') rightForeArm = child;
     }
   });
+
+  const armNodes: { arm: THREE.Bone; forearm: THREE.Bone }[] = [];
+  if (leftArm && leftForeArm) armNodes.push({ arm: leftArm, forearm: leftForeArm });
+  if (rightArm && rightForeArm) armNodes.push({ arm: rightArm, forearm: rightForeArm });
 
   const headBone = head as THREE.Bone | null;
   const spineBone = spine as THREE.Bone | null;
@@ -180,6 +184,7 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
     spine: spineBone,
     spineInitRot: spineBone ? spineBone.rotation.clone() : null,
     mixer,
+    armNodes,
   };
 }
 
@@ -326,6 +331,35 @@ function applyGlbMorphs(mesh: THREE.Mesh, f: FaceFrame) {
 function animateGlb(rig: GlbRig, f: FaceFrame) {
   // Update animation mixer
   rig.mixer?.update(f.dt);
+
+  // Dynamically drop arms from whatever pose the animation/bind sets them to
+  if (rig.armNodes && rig.armNodes.length > 0) {
+    rig.root.updateMatrixWorld(true);
+    for (const { arm, forearm } of rig.armNodes) {
+      const startPos = new THREE.Vector3();
+      arm.getWorldPosition(startPos);
+      
+      const endPos = new THREE.Vector3();
+      forearm.getWorldPosition(endPos);
+      
+      const currentDir = new THREE.Vector3().subVectors(endPos, startPos).normalize();
+      
+      // Only drop if it's pointing sideways or up (y > -0.5)
+      if (currentDir.y > -0.5) {
+        const isLeft = arm.name.toLowerCase().includes('left');
+        const targetDir = new THREE.Vector3(isLeft ? 0.15 : -0.15, -0.9, 0.1).normalize();
+        
+        const axis = new THREE.Vector3().crossVectors(currentDir, targetDir).normalize();
+        const angle = currentDir.angleTo(targetDir);
+        
+        const parentRotInv = arm.parent ? arm.parent.getWorldQuaternion(new THREE.Quaternion()).invert() : new THREE.Quaternion();
+        axis.applyQuaternion(parentRotInv);
+        
+        const localRot = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+        arm.quaternion.premultiply(localRot);
+      }
+    }
+  }
 
   // GLB Head micro-movement
   if (rig.head && rig.headInitRot) {
