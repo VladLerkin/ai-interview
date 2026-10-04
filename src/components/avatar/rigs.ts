@@ -78,10 +78,10 @@ function setupVrmRig(vrm: VRM, scene: THREE.Scene): VrmRig {
 
 /** Rotations that bring common GLB rigs down from T-pose. */
 const GLB_ARM_POSE: Record<string, number> = {
-  leftarm: 1.2,
-  rightarm: -1.2,
-  leftforearm: 0.2,
-  rightforearm: -0.2,
+  leftarm: -2.8,
+  rightarm: 2.8,
+  leftforearm: 0,
+  rightforearm: 0,
 };
 
 export const MOBILE_BREAKPOINT_PX = 768;
