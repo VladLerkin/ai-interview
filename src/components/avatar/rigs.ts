@@ -94,8 +94,8 @@ export const MOBILE_BREAKPOINT_PX = 768;
 function frameCameraOnHead(head: THREE.Object3D, camera: THREE.PerspectiveCamera, isMobile: boolean) {
   const headPos = new THREE.Vector3();
   head.getWorldPosition(headPos);
-  const camDistance = isMobile ? 0.95 : 0.65;
-  const targetY = isMobile ? headPos.y + 0.01 : headPos.y;
+  const camDistance = isMobile ? 1.15 : 0.85;
+  const targetY = isMobile ? headPos.y + 0.01 : headPos.y - 0.05;
   camera.position.set(headPos.x, targetY, headPos.z + camDistance);
   camera.lookAt(headPos.x, targetY, headPos.z);
 }
