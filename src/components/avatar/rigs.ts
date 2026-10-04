@@ -76,12 +76,10 @@ function setupVrmRig(vrm: VRM, scene: THREE.Scene): VrmRig {
   };
 }
 
-/** Rotations that bring common GLB rigs down from T-pose. */
-const GLB_ARM_POSE: Record<string, number> = {
-  leftarm: -2.8,
-  rightarm: 2.8,
-  leftforearm: 0,
-  rightforearm: 0,
+/** Rotations that bring common GLB rigs down from T-pose (requires full XYZ to avoid twisting). */
+const GLB_ARM_POSE: Record<string, [number, number, number]> = {
+  leftarm: [0.12, -0.02, -2.9],
+  rightarm: [0.12, 0.02, 2.9]
 };
 
 export const MOBILE_BREAKPOINT_PX = 768;
@@ -137,9 +135,9 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
       if (name.includes('spine') && !name.includes('spine1') && !name.includes('spine2')) spine = child;
 
       // Lower arms from T-pose (strict match to avoid ForeArm1/2)
-      for (const [key, angle] of Object.entries(GLB_ARM_POSE)) {
+      for (const [key, rot] of Object.entries(GLB_ARM_POSE)) {
         if (name === key) {
-          child.rotation.set(0, 0, angle);
+          child.rotation.set(rot[0], rot[1], rot[2]);
         }
       }
     }
