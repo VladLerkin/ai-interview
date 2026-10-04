@@ -36,6 +36,7 @@ const en = {
   noFeedback: 'Complete a response to see live feedback and scoring.',
   interviewHistory: 'Interview History',
   closingRemark: "Thank you for your time today. It was great getting to know you. We'll be in touch!",
+  stop: 'Stop',
 };
 
 export type TranslationKey = keyof typeof en;
@@ -84,6 +85,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: 'Ответьте на вопрос, чтобы получить оценку.',
     interviewHistory: 'История интервью',
     closingRemark: 'Спасибо, что уделили время. Было приятно познакомиться. Мы свяжемся с вами!',
+    stop: 'Остановить',
   },
   'de-DE': {
     setupTitle: 'Interview Einrichtung',
@@ -121,6 +123,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: 'Schließen Sie eine Antwort ab, um Live-Feedback zu sehen.',
     interviewHistory: 'Interview-Verlauf',
     closingRemark: 'Vielen Dank für Ihre Zeit heute. Es war schön, Sie kennenzulernen. Wir melden uns bei Ihnen!',
+    stop: 'Stopp',
   },
   'es-ES': {
     setupTitle: 'Configuración de la entrevista',
@@ -158,6 +161,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: 'Completa una respuesta para ver la evaluación en vivo.',
     interviewHistory: 'Historial de la entrevista',
     closingRemark: 'Muchas gracias por tu tiempo hoy. Ha sido un placer conocerte. ¡Nos pondremos en contacto contigo pronto!',
+    stop: 'Detener',
   },
   'fr-FR': {
     setupTitle: "Configuration de l'entretien",
@@ -195,6 +199,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: 'Répondez à une question pour afficher le feedback.',
     interviewHistory: "Historique de l'entretien",
     closingRemark: "Merci beaucoup pour votre temps aujourd'hui. C'était un plaisir d'échanger avec vous. Nous vous recontacterons bientôt !",
+    stop: 'Arrêter',
   },
   'zh-CN': {
     setupTitle: '面试设置',
@@ -232,6 +237,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: '回答问题后即可查看实时评分和反馈。',
     interviewHistory: '面试记录',
     closingRemark: '非常感谢您今天的时间！很高兴与您交流，我们随后会与您保持联系！',
+    stop: '停止',
   },
   'ja-JP': {
     setupTitle: '面接の設定',
@@ -269,6 +275,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: '回答するとここにスコアと詳細な評価が表示されます。',
     interviewHistory: '面接履歴',
     closingRemark: '本日はお時間をいただき誠にありがとうございました。お話しできて光栄でした。選考結果は追ってご連絡いたします！',
+    stop: '停止',
   },
   'ka-GE': {
     setupTitle: 'ინტერვიუს პარამეტრები',
@@ -306,6 +313,7 @@ const translations: Partial<Record<Language, Dictionary>> = {
     noFeedback: 'უპასუხეთ შეკითხვას შეფასების მისაღებად.',
     interviewHistory: 'ინტერვიუს ისტორია',
     closingRemark: 'დიდი მადლობა დათმობილი დროისთვის. სასიამოვნო იყო თქვენი გაცნობა. მალე დაგიკავშირდებით!',
+    stop: 'გაჩერება',
   },
 };
 

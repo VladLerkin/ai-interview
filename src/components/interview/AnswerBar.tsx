@@ -1,4 +1,4 @@
-import { Mic, MicOff, Send } from 'lucide-react';
+import { Mic, MicOff, Send, Square } from 'lucide-react';
 import type { Translator } from '../../lib/i18n';
 
 interface AnswerBarProps {
@@ -8,6 +8,8 @@ interface AnswerBarProps {
   /** Input is locked while the interviewer is speaking or the answer is being evaluated. */
   disabled: boolean;
   canSubmit: boolean;
+  isSpeaking: boolean;
+  onStopSpeaking: () => void;
   onToggleMic: () => void;
   onSubmit: () => void;
   t: Translator;
@@ -19,6 +21,8 @@ export const AnswerBar: React.FC<AnswerBarProps> = ({
   isListening,
   disabled,
   canSubmit,
+  isSpeaking,
+  onStopSpeaking,
   onToggleMic,
   onSubmit,
   t,
@@ -35,15 +39,24 @@ export const AnswerBar: React.FC<AnswerBarProps> = ({
     </div>
 
     <div className="flex flex-col gap-2 h-full justify-center w-28 md:w-36 shrink-0">
-      <button
-        onClick={onToggleMic}
-        disabled={disabled}
-        className={`flex-1 rounded-xl flex items-center justify-center gap-1.5 md:gap-2 transition-all font-bold text-xs md:text-sm text-white ${
-          isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'bg-primary-600 hover:bg-primary-500'
-        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        {isListening ? <MicOff className="w-4 h-4 md:w-5 md:h-5" /> : <Mic className="w-4 h-4 md:w-5 md:h-5" />} {t('mic')}
-      </button>
+      {isSpeaking ? (
+        <button
+          onClick={onStopSpeaking}
+          className="flex-1 rounded-xl flex items-center justify-center gap-1.5 md:gap-2 transition-all font-bold text-xs md:text-sm text-white bg-red-500 hover:bg-red-600 animate-pulse"
+        >
+          <Square className="w-4 h-4 md:w-5 md:h-5 fill-current" /> {t('stop')}
+        </button>
+      ) : (
+        <button
+          onClick={onToggleMic}
+          disabled={disabled}
+          className={`flex-1 rounded-xl flex items-center justify-center gap-1.5 md:gap-2 transition-all font-bold text-xs md:text-sm text-white ${
+            isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'bg-primary-600 hover:bg-primary-500'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {isListening ? <MicOff className="w-4 h-4 md:w-5 md:h-5" /> : <Mic className="w-4 h-4 md:w-5 md:h-5" />} {t('mic')}
+        </button>
+      )}
 
       <button
         onClick={onSubmit}

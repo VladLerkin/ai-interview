@@ -1,4 +1,4 @@
-import { Brain, Square, Volume2 } from 'lucide-react';
+import { Brain, Volume2 } from 'lucide-react';
 import { formatStageName } from '../../agent/stages';
 import type { Translator } from '../../lib/i18n';
 import { AvatarCanvas } from '../avatar/AvatarCanvas';
@@ -48,15 +48,6 @@ export const InterviewerStage: React.FC<InterviewerStageProps> = ({
               <p className="text-left md:text-center flex-1">{speech || t('preparing')}</p>
               {speech && (
                 <div className="flex gap-1.5 md:gap-2 shrink-0">
-                  {isSpeaking && (
-                    <button
-                      onClick={onStopSpeaking}
-                      className="p-1.5 md:p-2 rounded-full hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
-                      title="Stop Speaking"
-                    >
-                      <Square className="w-4 h-4 md:w-5 md:h-5 fill-current" />
-                    </button>
-                  )}
                   <button
                     onClick={onReplay}
                     disabled={isSpeaking}
