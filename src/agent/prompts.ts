@@ -52,9 +52,20 @@ interface InterviewerPromptParams {
   stageNumber: number;
   totalStages: number;
   targetLanguage: string;
+  interviewerGender?: 'male' | 'female' | 'neutral';
 }
 
-export const buildInterviewerSystemPrompt = (p: InterviewerPromptParams): string => `${p.typePrompt}
+export const buildInterviewerSystemPrompt = (p: InterviewerPromptParams): string => {
+  let genderInstruction = '';
+  if (p.interviewerGender === 'female') {
+    genderInstruction = '\nYou are a female interviewer. Introduce yourself with a culturally appropriate female name and strictly use feminine grammar (e.g. verbs, adjectives) when referring to yourself.';
+  } else if (p.interviewerGender === 'male') {
+    genderInstruction = '\nYou are a male interviewer. Introduce yourself with a culturally appropriate male name and strictly use masculine grammar when referring to yourself.';
+  } else {
+    genderInstruction = '\nIntroduce yourself with a gender-neutral persona or strictly avoid gender-specific verbs/adjectives when referring to yourself.';
+  }
+
+  return `${p.typePrompt}${genderInstruction}
 
 Company: ${p.companyInfo || 'a leading tech company'}.
 Target role: ${p.jobDescription}.
@@ -71,6 +82,7 @@ CRITICAL RULES:
 - Act like a real person having an engaging video interview. 
 - Do not include stage directions, labels, or prefixes like 'Interviewer:'.
 - NEVER explicitly mention the internal stage name (e.g. do not say "Welcome to the culture fit stage" or "Now let's move to the system design stage"). Just ask the questions naturally.`;
+};
 
 interface EvaluationPromptParams {
   question?: string;

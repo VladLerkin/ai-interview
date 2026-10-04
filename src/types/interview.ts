@@ -21,6 +21,7 @@ export interface InterviewConfig {
   language: Language;
   avatarUrl?: string;
   resumeFileName?: string;
+  interviewerGender?: 'male' | 'female' | 'neutral';
 }
 
 export type SpeakerRole = 'candidate' | 'interviewer';

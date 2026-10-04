@@ -62,8 +62,9 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
       jobDescription: config.jobDescription,
       companyInfo: config.companyInfo,
       interviewType: config.interviewType || DEFAULT_AGENT_INTERVIEW_TYPE,
+      interviewerGender: config.interviewerGender,
     }),
-    [config.resumeText, config.jobDescription, config.companyInfo, config.interviewType],
+    [config.resumeText, config.jobDescription, config.companyInfo, config.interviewType, config.interviewerGender],
   );
 
   const speakAfterGreeting = useCallback((text: string) => {

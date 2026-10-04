@@ -32,6 +32,7 @@ export const InterviewState = Annotation.Root({
   jobDescription: Annotation<string>(),
   companyInfo: Annotation<string>(),
   interviewType: Annotation<InterviewType>(),
+  interviewerGender: Annotation<'male' | 'female' | 'neutral'>(),
   interviewStage: Annotation<string>(),
   history: Annotation<HistoryEntry[]>({ reducer: replace, default: () => [] }),
   lastCandidateAnswer: Annotation<string>(),
@@ -111,6 +112,7 @@ export const createInterviewAgent = (provider: Provider, apiKey: string, languag
       stageNumber: stages.indexOf(currentStage) + 1,
       totalStages: stages.length,
       targetLanguage,
+      interviewerGender: state.interviewerGender,
     });
 
     const chatHistory = (state.history || []).map(toChatMessage);
