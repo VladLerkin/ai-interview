@@ -32,7 +32,7 @@ export const InterviewState = Annotation.Root({
   jobDescription: Annotation<string>(),
   companyInfo: Annotation<string>(),
   interviewType: Annotation<InterviewType>(),
-  interviewerGender: Annotation<'male' | 'female' | 'neutral'>(),
+  interviewerGender: Annotation<'male' | 'female'>(),
   interviewStage: Annotation<string>(),
   history: Annotation<HistoryEntry[]>({ reducer: replace, default: () => [] }),
   lastCandidateAnswer: Annotation<string>(),

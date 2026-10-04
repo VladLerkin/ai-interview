@@ -52,17 +52,15 @@ interface InterviewerPromptParams {
   stageNumber: number;
   totalStages: number;
   targetLanguage: string;
-  interviewerGender?: 'male' | 'female' | 'neutral';
+  interviewerGender?: 'male' | 'female';
 }
 
 export const buildInterviewerSystemPrompt = (p: InterviewerPromptParams): string => {
   let genderInstruction = '';
-  if (p.interviewerGender === 'female') {
-    genderInstruction = '\nYou are a female interviewer. Introduce yourself with a culturally appropriate female name and strictly use feminine grammar (e.g. verbs, adjectives) when referring to yourself.';
-  } else if (p.interviewerGender === 'male') {
+  if (p.interviewerGender === 'male') {
     genderInstruction = '\nYou are a male interviewer. Introduce yourself with a culturally appropriate male name and strictly use masculine grammar when referring to yourself.';
   } else {
-    genderInstruction = '\nIntroduce yourself with a gender-neutral persona or strictly avoid gender-specific verbs/adjectives when referring to yourself.';
+    genderInstruction = '\nYou are a female interviewer. Introduce yourself with a culturally appropriate female name and strictly use feminine grammar (e.g. verbs, adjectives) when referring to yourself.';
   }
 
   return `${p.typePrompt}${genderInstruction}

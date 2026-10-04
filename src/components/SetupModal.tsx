@@ -69,11 +69,11 @@ const interviewTypes: {
     },
   ];
 
-const PREDEFINED_AVATARS: { id: string; name: string; url: string; img: string; gender: 'male' | 'female' | 'neutral' }[] = [
-  { id: 'default', name: 'Standard AI', url: '/avatar.vrm', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai&backgroundColor=1f2937', gender: 'neutral' },
+const PREDEFINED_AVATARS: { id: string; name: string; url: string; img: string; gender: 'male' | 'female' }[] = [
+  { id: 'default', name: 'Standard AI', url: '/avatar.vrm', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai&backgroundColor=1f2937', gender: 'female' },
   { id: 'realistic', name: 'Business Woman', url: '/avatar.glb', img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica&backgroundColor=1f2937', gender: 'female' },
   { id: 'tech', name: 'Tech Lead', url: '/avatar.vrm', img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=1f2937', gender: 'male' },
-  { id: 'custom', name: 'Custom Upload', url: 'custom', img: 'https://api.dicebear.com/7.x/identicon/svg?seed=custom&backgroundColor=374151', gender: 'neutral' }
+  { id: 'custom', name: 'Custom Upload', url: 'custom', img: 'https://api.dicebear.com/7.x/identicon/svg?seed=custom&backgroundColor=374151', gender: 'female' }
 ];
 
 export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
@@ -156,7 +156,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       language,
       avatarUrl,
       resumeFileName: fileName,
-      interviewerGender: selectedAvatar?.gender || 'neutral',
+      interviewerGender: selectedAvatar?.gender || 'female',
     });
   };
 
