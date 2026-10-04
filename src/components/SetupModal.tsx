@@ -86,18 +86,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [selectedAvatarId, setSelectedAvatarId] = useState(DEFAULT_AVATAR_ID);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(REMOTE_GLB_AVATAR_URL);
   const [avatarFileName, setAvatarFileName] = useState('');
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
 
   useEffect(() => {
     getStoredData('interviewConfig').then((data) => {
@@ -164,22 +154,6 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
         <div className="bg-gradient-to-r from-primary-600 to-purple-600 p-6 text-center relative">
           <h1 className="text-3xl font-bold text-white mb-2">AI Interview Simulator</h1>
           <p className="text-primary-100 opacity-90">Prepare for your next big role with real-time feedback.</p>
-          
-          {installPrompt && (
-            <button 
-              onClick={async () => {
-                installPrompt.prompt();
-                const { outcome } = await installPrompt.userChoice;
-                if (outcome === 'accepted') {
-                  setInstallPrompt(null);
-                }
-              }}
-              className="absolute top-4 right-4 md:top-6 md:right-6 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm shadow-sm"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Install App
-            </button>
-          )}
         </div>
 
         {step === 'type' ? (

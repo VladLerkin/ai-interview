@@ -3,10 +3,39 @@ import type { InterviewConfig } from './types/interview';
 import { SetupModal } from './components/SetupModal';
 import { InterviewRoom } from './components/interview/InterviewRoom';
 import { getStoredData, setStoredData, deleteStoredData } from './lib/store';
+import { Download } from 'lucide-react';
+
+// Capture the prompt event globally before React might miss it
+let deferredPrompt: any = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
 
 function App() {
   const [config, setConfig] = useState<InterviewConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState<any>(deferredPrompt);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      deferredPrompt = e;
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setInstallPrompt(null);
+      deferredPrompt = null;
+    }
+  };
 
   useEffect(() => {
     getStoredData('interviewConfig').then((data) => {
@@ -45,6 +74,16 @@ function App() {
         <SetupModal onStart={handleStart} />
       ) : (
         <InterviewRoom config={config} onReset={handleReset} />
+      )}
+
+      {installPrompt && (
+        <button
+          onClick={handleInstall}
+          className="fixed bottom-6 right-6 z-50 bg-primary-600 hover:bg-primary-500 text-white font-semibold px-5 py-3 rounded-full shadow-xl shadow-primary-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-1 hover:scale-105"
+        >
+          <Download className="w-5 h-5" />
+          Install App
+        </button>
       )}
     </div>
   );
