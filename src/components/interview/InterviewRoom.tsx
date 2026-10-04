@@ -53,7 +53,6 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
           isEvaluating={isEvaluating}
           onModelReady={handleModelReady}
           onReplay={() => tts.speak(speech)}
-          onStopSpeaking={tts.stop}
           onEnd={onReset}
           t={t}
         />

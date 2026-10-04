@@ -13,7 +13,6 @@ interface InterviewerStageProps {
   isEvaluating: boolean;
   onModelReady: () => void;
   onReplay: () => void;
-  onStopSpeaking: () => void;
   onEnd: () => void;
   t: Translator;
 }
@@ -28,7 +27,6 @@ export const InterviewerStage: React.FC<InterviewerStageProps> = ({
   isEvaluating,
   onModelReady,
   onReplay,
-  onStopSpeaking,
   onEnd,
   t,
 }) => (
