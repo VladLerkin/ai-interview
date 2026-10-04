@@ -15,13 +15,14 @@ export interface AvatarOption {
   /** Model URL, or `null` for the custom-upload option. */
   url: string | null;
   img: string;
+  gender: 'male' | 'female';
 }
 
 export const PREDEFINED_AVATARS: AvatarOption[] = [
-  { id: 'default', name: 'Standard AI', url: LOCAL_VRM_AVATAR_URL, img: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai&backgroundColor=1f2937' },
-  { id: 'realistic', name: 'Business Woman', url: REMOTE_GLB_AVATAR_URL, img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica&backgroundColor=1f2937' },
-  { id: 'tech', name: 'Tech Lead', url: LOCAL_VRM_AVATAR_URL, img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=1f2937' },
-  { id: CUSTOM_AVATAR_ID, name: 'Custom Upload', url: null, img: 'https://api.dicebear.com/7.x/identicon/svg?seed=custom&backgroundColor=374151' },
+  { id: 'default', name: 'Standard AI', url: LOCAL_VRM_AVATAR_URL, img: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai&backgroundColor=1f2937', gender: 'female' },
+  { id: 'realistic', name: 'Business Woman', url: REMOTE_GLB_AVATAR_URL, img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica&backgroundColor=1f2937', gender: 'female' },
+  { id: 'tech', name: 'Tech Lead', url: LOCAL_VRM_AVATAR_URL, img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=1f2937', gender: 'male' },
+  { id: CUSTOM_AVATAR_ID, name: 'Custom Upload', url: null, img: 'https://api.dicebear.com/7.x/identicon/svg?seed=custom&backgroundColor=374151', gender: 'female' },
 ];
 
 export const DEFAULT_AVATAR_ID = 'realistic';

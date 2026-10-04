@@ -5,6 +5,7 @@ import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDas
 import type { InterviewType, InterviewConfig, Language } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
+import { PREDEFINED_AVATARS, CUSTOM_AVATAR_ID, REMOTE_GLB_AVATAR_URL, DEFAULT_AVATAR_ID } from '../config/avatars';
 
 export type { InterviewType, InterviewConfig };
 
@@ -69,12 +70,7 @@ const interviewTypes: {
     },
   ];
 
-const PREDEFINED_AVATARS: { id: string; name: string; url: string; img: string; gender: 'male' | 'female' }[] = [
-  { id: 'default', name: 'Standard AI', url: '/avatar.vrm', img: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai&backgroundColor=1f2937', gender: 'female' },
-  { id: 'realistic', name: 'Business Woman', url: '/avatar.glb', img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica&backgroundColor=1f2937', gender: 'female' },
-  { id: 'tech', name: 'Tech Lead', url: '/avatar.vrm', img: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=1f2937', gender: 'male' },
-  { id: 'custom', name: 'Custom Upload', url: 'custom', img: 'https://api.dicebear.com/7.x/identicon/svg?seed=custom&backgroundColor=374151', gender: 'female' }
-];
+
 
 export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [step, setStep] = useState<'type' | 'details'>('type');
@@ -87,8 +83,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [resumeText, setResumeText] = useState('');
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedAvatarId, setSelectedAvatarId] = useState('realistic');
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>('https://raw.githubusercontent.com/VladLerkin/ai-interview/75a4105/public/avatar.glb');
+  const [selectedAvatarId, setSelectedAvatarId] = useState(DEFAULT_AVATAR_ID);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(REMOTE_GLB_AVATAR_URL);
   const [avatarFileName, setAvatarFileName] = useState('');
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 
@@ -384,8 +380,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     key={avatar.id}
                     onClick={() => {
                       setSelectedAvatarId(avatar.id);
-                      if (avatar.url !== 'custom') {
-                        setAvatarUrl(avatar.url);
+                      if (avatar.id !== CUSTOM_AVATAR_ID) {
+                        setAvatarUrl(avatar.url || undefined);
                         setAvatarFileName('');
                       }
                     }}
@@ -400,7 +396,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 ))}
               </div>
 
-              {selectedAvatarId === 'custom' && (
+              {selectedAvatarId === CUSTOM_AVATAR_ID && (
                 <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center hover:bg-dark-800/50 transition-colors cursor-pointer relative animate-in fade-in slide-in-from-top-2">
                   <input
                     type="file"
