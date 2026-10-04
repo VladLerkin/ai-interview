@@ -28,6 +28,7 @@ interface GlbRig {
   spine: THREE.Bone | null;
   spineInitRot: THREE.Euler | null;
   mixer: THREE.AnimationMixer | null;
+  armBones: { bone: THREE.Bone; angle: number }[];
 }
 
 const isGlbUrl = (url: string) => {
@@ -124,6 +125,7 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
   let jaw: THREE.Bone | null = null;
   let head: THREE.Bone | null = null;
   let spine: THREE.Bone | null = null;
+  const armBones: { bone: THREE.Bone; angle: number }[] = [];
 
   root.traverse((child) => {
     if (child instanceof THREE.Mesh && child.morphTargetDictionary) {
@@ -137,7 +139,12 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
       if (name.includes('spine') && !name.includes('spine1') && !name.includes('spine2')) spine = child;
 
       // Lower arms from T-pose
-      if (name in GLB_ARM_POSE) child.rotation.set(0, 0, GLB_ARM_POSE[name]);
+      for (const [key, angle] of Object.entries(GLB_ARM_POSE)) {
+        if (name.includes(key)) {
+          child.rotation.set(0, 0, angle);
+          armBones.push({ bone: child, angle });
+        }
+      }
     }
   });
 
@@ -174,6 +181,7 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
     spine: spineBone,
     spineInitRot: spineBone ? spineBone.rotation.clone() : null,
     mixer,
+    armBones,
   };
 }
 
@@ -225,9 +233,12 @@ function animateVrm(rig: VrmRig, f: FaceFrame) {
   setExpr(vrm, VRMExpressionPresetName.Oh, f.viseme.oh);
   setExpr(vrm, VRMExpressionPresetName.Ou, f.viseme.ou);
 
+  // Add subtle eyebrow lift when speaking
+  const speakingBrow = f.speaking ? (f.viseme.aa * 0.25 + f.viseme.ee * 0.15 + f.viseme.oh * 0.15 + f.viseme.ih * 0.1) : 0;
+
   setExpr(vrm, VRMExpressionPresetName.Happy, f.emotionWeights.happy);
   setExpr(vrm, VRMExpressionPresetName.Relaxed, f.emotionWeights.relaxed);
-  setExpr(vrm, VRMExpressionPresetName.Surprised, f.emotionWeights.surprised);
+  setExpr(vrm, VRMExpressionPresetName.Surprised, f.emotionWeights.surprised + speakingBrow);
   setExpr(vrm, VRMExpressionPresetName.Sad, f.emotionWeights.sad);
 
   // ─── 7. UPDATE VRM ───────────────────────────────────
@@ -273,9 +284,12 @@ function applyGlbMorphs(mesh: THREE.Mesh, f: FaceFrame) {
   setMorph('browDownLeft', e.sad * 0.6 + (isSmirk ? 0.4 : 0));
   setMorph('browDownRight', e.sad * 0.6 + (isSmirk ? 0.4 : 0));
 
-  setMorph('browInnerUp', e.surprised * 0.8 + e.sad * 0.6);
-  setMorph('browOuterUpLeft', e.surprised * 0.8);
-  setMorph('browOuterUpRight', e.surprised * 0.8);
+  // Eyebrow movement when speaking (especially on open vowels)
+  const speakingBrow = f.speaking ? (v.aa * 0.25 + v.ee * 0.15 + v.oh * 0.15 + v.ih * 0.1) : 0;
+
+  setMorph('browInnerUp', e.surprised * 0.8 + e.sad * 0.6 + speakingBrow);
+  setMorph('browOuterUpLeft', e.surprised * 0.8 + speakingBrow * 0.5);
+  setMorph('browOuterUpRight', e.surprised * 0.8 + speakingBrow * 0.5);
   setMorph('mouthFrownLeft', e.sad * 0.5);
   setMorph('mouthFrownRight', e.sad * 0.5);
 
@@ -314,6 +328,11 @@ function applyGlbMorphs(mesh: THREE.Mesh, f: FaceFrame) {
 function animateGlb(rig: GlbRig, f: FaceFrame) {
   // Update animation mixer
   rig.mixer?.update(f.dt);
+
+  // Force arms down (overrides any idle animation that might put them in A-pose)
+  for (const { bone, angle } of rig.armBones) {
+    bone.rotation.set(0, 0, angle);
+  }
 
   // GLB Head micro-movement
   if (rig.head && rig.headInitRot) {
