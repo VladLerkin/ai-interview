@@ -5,23 +5,16 @@ import { InterviewRoom } from './components/interview/InterviewRoom';
 import { getStoredData, setStoredData, deleteStoredData } from './lib/store';
 import { Download } from 'lucide-react';
 
-// Capture the prompt event globally before React might miss it
-let deferredPrompt: any = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
 function App() {
   const [config, setConfig] = useState<InterviewConfig | null>(null);
   const [loading, setLoading] = useState(true);
-  const [installPrompt, setInstallPrompt] = useState<any>(deferredPrompt);
+  const [installPrompt, setInstallPrompt] = useState<any>((window as any).deferredPrompt);
 
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e);
-      deferredPrompt = e;
+      (window as any).deferredPrompt = e;
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
@@ -33,7 +26,7 @@ function App() {
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') {
       setInstallPrompt(null);
-      deferredPrompt = null;
+      (window as any).deferredPrompt = null;
     }
   };
 

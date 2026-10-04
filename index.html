@@ -5,23 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ai-interview-pwa</title>
+    <script>
+      // Capture the prompt event as early as possible
+      window.deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.deferredPrompt = e;
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister().then(function(boolean) {
-              if (boolean) {
-                console.log('Service worker unregistered');
-                window.location.reload(); // Force reload once unregistered
-              }
-            });
-          } 
-        });
-      }
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
