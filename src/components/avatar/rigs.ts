@@ -28,7 +28,6 @@ interface GlbRig {
   spine: THREE.Bone | null;
   spineInitRot: THREE.Euler | null;
   mixer: THREE.AnimationMixer | null;
-  armBones: { bone: THREE.Bone; angle: number }[];
 }
 
 const isGlbUrl = (url: string) => {
@@ -125,7 +124,6 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
   let jaw: THREE.Bone | null = null;
   let head: THREE.Bone | null = null;
   let spine: THREE.Bone | null = null;
-  const armBones: { bone: THREE.Bone; angle: number }[] = [];
 
   root.traverse((child) => {
     if (child instanceof THREE.Mesh && child.morphTargetDictionary) {
@@ -138,11 +136,10 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
       if (name.includes('head') && !name.includes('headtop')) head = child;
       if (name.includes('spine') && !name.includes('spine1') && !name.includes('spine2')) spine = child;
 
-      // Lower arms from T-pose
+      // Lower arms from T-pose (strict match to avoid ForeArm1/2)
       for (const [key, angle] of Object.entries(GLB_ARM_POSE)) {
-        if (name.includes(key)) {
+        if (name === key) {
           child.rotation.set(0, 0, angle);
-          armBones.push({ bone: child, angle });
         }
       }
     }
@@ -167,6 +164,10 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
   if (gltf.animations.length > 0) {
     mixer = new THREE.AnimationMixer(root);
     const clip = gltf.animations[0];
+    
+    // Remove arm and shoulder tracks so the animation doesn't force a T-pose/A-pose
+    clip.tracks = clip.tracks.filter(t => !t.name.match(/Shoulder|Arm|Hand|ForeArm/i));
+    
     mixer.clipAction(clip).play();
     console.log('[GLB] Playing animation:', clip.name, 'duration:', clip.duration);
   }
@@ -181,7 +182,6 @@ function setupGlbRig(gltf: GLTF, scene: THREE.Scene, camera: THREE.PerspectiveCa
     spine: spineBone,
     spineInitRot: spineBone ? spineBone.rotation.clone() : null,
     mixer,
-    armBones,
   };
 }
 
@@ -328,11 +328,6 @@ function applyGlbMorphs(mesh: THREE.Mesh, f: FaceFrame) {
 function animateGlb(rig: GlbRig, f: FaceFrame) {
   // Update animation mixer
   rig.mixer?.update(f.dt);
-
-  // Force arms down (overrides any idle animation that might put them in A-pose)
-  for (const { bone, angle } of rig.armBones) {
-    bone.rotation.set(0, 0, angle);
-  }
 
   // GLB Head micro-movement
   if (rig.head && rig.headInitRot) {
