@@ -98,7 +98,7 @@ High-fidelity neural voices are served with zero third-party subscriptions:
 - **Cloudflare Pages Function (`functions/api/tts.ts`)**:
   - Connects directly to Microsoft Edge neural TTS endpoints via outbound WebSocket.
   - Aggregates binary MPEG audio chunks and streams MP3 data directly to the browser.
-  - Provides natural neural voices across 9 locales:
+  - Provides natural neural voices across 11 locales:
     - 🇺🇸 `en-US-AvaNeural`
     - 🇬🇧 `en-GB-SoniaNeural`
     - 🇷🇺 `ru-RU-SvetlanaNeural`
@@ -108,6 +108,8 @@ High-fidelity neural voices are served with zero third-party subscriptions:
     - 🇨🇳 `zh-CN-XiaoxiaoNeural`
     - 🇯🇵 `ja-JP-NanamiNeural`
     - 🇬🇪 `ka-GE-EkaNeural`
+    - 🇹🇷 `tr-TR-EmelNeural`
+    - 🇮🇹 `it-IT-ElsaNeural`
 - **Fallback**: Automatically falls back to native browser `SpeechSynthesis` if network is unavailable.
 
 ---

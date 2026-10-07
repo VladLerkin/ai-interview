@@ -4,11 +4,13 @@ export type Language =
   | 'en-GB'
   | 'ru-RU'
   | 'es-ES'
+  | 'it-IT'
   | 'de-DE'
   | 'fr-FR'
+  | 'tr-TR'
+  | 'ka-GE'
   | 'zh-CN'
-  | 'ja-JP'
-  | 'ka-GE';
+  | 'ja-JP';
 export type Provider = 'openai' | 'anthropic' | 'gemini' | 'deepseek';
 
 export interface InterviewConfig {

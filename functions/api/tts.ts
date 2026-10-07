@@ -16,6 +16,8 @@ function getEdgeVoice(lang = 'en-US'): { voice: string; locale: string } {
   if (l.startsWith('zh')) return { voice: 'zh-CN-XiaoxiaoNeural', locale: 'zh-CN' };
   if (l.startsWith('ja')) return { voice: 'ja-JP-NanamiNeural', locale: 'ja-JP' };
   if (l.startsWith('ka')) return { voice: 'ka-GE-EkaNeural', locale: 'ka-GE' };
+  if (l.startsWith('tr')) return { voice: 'tr-TR-EmelNeural', locale: 'tr-TR' };
+  if (l.startsWith('it')) return { voice: 'it-IT-ElsaNeural', locale: 'it-IT' };
   if (l.startsWith('en-gb') || l === 'en-uk') return { voice: 'en-GB-SoniaNeural', locale: 'en-GB' };
   return { voice: 'en-US-AvaNeural', locale: 'en-US' };
 }
