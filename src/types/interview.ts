@@ -8,6 +8,7 @@ export type Language =
   | 'de-DE'
   | 'fr-FR'
   | 'tr-TR'
+  | 'he-IL'
   | 'ka-GE'
   | 'zh-CN'
   | 'ja-JP';

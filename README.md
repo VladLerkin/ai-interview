@@ -12,7 +12,7 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
   - Organic upper lip mobility (`mouthUpperUp`, `mouthShrugUpper`).
   - Full CJK prosody engine for Chinese and Japanese (3-phase syllabic attack/nucleus/coda decomposition, Hiragana/Katakana phonetic mapping, and CJK full-width punctuation pauses).
 - **Studio-Quality Neural Voices:** Powered by Microsoft Edge TTS via native Cloudflare Pages serverless functions with zero external latency or paid TTS dependencies.
-- **Comprehensive Multilingual Support (i18n):** Complete UI localization, system prompts, and native neural voices across 11 international languages and accents.
+- **Comprehensive Multilingual Support (i18n):** Complete UI localization, system prompts, and native neural voices across 12 international languages and accents.
 - **Mobile-First Responsive UX (PWA):**
   - Full-viewport mobile layout (`h-[100dvh]`) prioritizing avatar presence and conversation flow.
   - Ergonomic answer input box with enlarged text (`16px`) and touch-friendly controls.
@@ -35,6 +35,7 @@ The simulator provides full UI localization, tailored LLM prompt instructions, a
 | 🇩🇪 | **German** | Deutsch | `de-DE` |
 | 🇫🇷 | **French** | Français | `fr-FR` |
 | 🇹🇷 | **Turkish** | Türkçe | `tr-TR` |
+| 🇮🇱 | **Hebrew** | עברית | `he-IL` |
 | 🇬🇪 | **Georgian** | ქართული | `ka-GE` |
 | 🇨🇳 | **Chinese (Simplified)** | 中文 (普通话) | `zh-CN` |
 | 🇯🇵 | **Japanese** | 日本語 | `ja-JP` |
@@ -110,7 +111,7 @@ The serverless Edge TTS proxy runs natively via Cloudflare Pages Functions locat
 │       │   └── types.ts            # Phonetic viseme models and weights
 │       ├── pdf.ts                  # PDF resume parser using pdfjs-dist
 │       ├── store.ts                # IndexedDB client cache wrapper
-│       └── i18n.ts                 # Full localization dictionaries (en, ru, es, de, fr, zh, ja, ka, tr, it)
+│       └── i18n.ts                 # Full localization dictionaries (en, ru, es, de, fr, zh, ja, ka, tr, it, he)
 └── docs/
     └── design.md                   # Detailed architecture, lip-sync, and rendering design
 ```
