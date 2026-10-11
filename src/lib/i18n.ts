@@ -37,10 +37,13 @@ const en = {
   interviewHistory: 'Interview History',
   closingRemark: "Thank you for your time today. It was great getting to know you. We'll be in touch!",
   stop: 'Stop',
+  resumeRequired: 'Please upload your resume (PDF) to proceed.',
+  apiKeyRequired: 'Please enter your API key.',
+  jobDescRequired: 'Please provide a job description.',
 };
 
 export type TranslationKey = keyof typeof en;
-type Dictionary = Record<TranslationKey, string>;
+type Dictionary = Partial<Record<TranslationKey, string>>;
 
 const translations: Partial<Record<Language, Dictionary>> = {
   'en-US': en,
@@ -86,6 +89,9 @@ const translations: Partial<Record<Language, Dictionary>> = {
     interviewHistory: 'История интервью',
     closingRemark: 'Спасибо, что уделили время. Было приятно познакомиться. Мы свяжемся с вами!',
     stop: 'Остановить',
+    resumeRequired: 'Пожалуйста, загрузите резюме (PDF), чтобы продолжить.',
+    apiKeyRequired: 'Пожалуйста, укажите ваш API ключ.',
+    jobDescRequired: 'Пожалуйста, укажите описание вакансии.',
   },
   'de-DE': {
     setupTitle: 'Interview Einrichtung',
@@ -466,6 +472,9 @@ const translations: Partial<Record<Language, Dictionary>> = {
     interviewHistory: 'Ιστορικό Συνέντευξης',
     closingRemark: 'Ευχαριστούμε πολύ για τον χρόνο σας σήμερα. Ήταν χαρά μας να σας γνωρίσουμε. Θα επικοινωνήσουμε σύντομα!',
     stop: 'Διακοπή',
+    resumeRequired: 'Παρακαλούμε μεταφορτώστε το βιογραφικό σας (PDF) για να συνεχίσετε.',
+    apiKeyRequired: 'Παρακαλούμε εισάγετε το κλειδί API σας.',
+    jobDescRequired: 'Παρακαλούμε εισάγετε την περιγραφή της θέσης εργασίας.',
   },
 };
 

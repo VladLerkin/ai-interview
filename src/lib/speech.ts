@@ -36,6 +36,8 @@ const PREFERRED_FEMALE_HINTS = [
   'tingting',
   'kyoko',
   'otohe',
+  'melina',
+  'athina',
   'google',
 ];
 
@@ -104,8 +106,29 @@ export const pickVoice = (voices: SpeechSynthesisVoice[], lang: string): SpeechS
     voices.find((v) => matchesPrefix(v) && isPreferredFemale(v)) ||
     voices.find((v) => matchesPrefix(v) && !isMale(v)) ||
     voices.find(matchesLang) ||
-    voices.find(matchesPrefix)
+    voices.find(matchesPrefix) ||
+    // If the language is NOT Russian, avoid letting the browser fall back to Russian OS voice
+    (langPrefix !== 'ru'
+      ? voices.find((v) => v.lang.toLowerCase().startsWith('en') && isPreferredFemale(v)) ||
+        voices.find((v) => v.lang.toLowerCase().startsWith('en'))
+      : undefined)
   );
+};
+
+/**
+ * Sanitizes text specifically for speech synthesis engines.
+ * Converts Greek question marks (';' and ';') to '?' so TTS voices apply
+ * rising question pitch instead of literally vocalizing "точка с запятой" or "semicolon".
+ * Also removes stray semicolons and trailing separators.
+ */
+export const sanitizeForSpeech = (text: string): string => {
+  if (!text) return '';
+  return text
+    // Replace Greek question mark (';' or ';') with standard '?' for the TTS engine
+    .replace(/([^\s\d])\s*[;;]+(?=\s|$)/g, '$1?')
+    // Replace any remaining stray semicolons with a gentle comma pause
+    .replace(/[;;]+/g, ',')
+    .trim();
 };
 
 /** Splits text into sentences. Avoids regex lookbehind for older Safari. */
@@ -124,7 +147,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
  */
 export const computeProsody = (sentence: string, index: number, total: number) => {
   const wordCount = sentence.split(/\s+/).length;
-  const isQuestion = sentence.endsWith('?');
+  const isQuestion = sentence.endsWith('?') || sentence.endsWith(';') || sentence.endsWith(';');
   const isExclamation = sentence.endsWith('!');
   const isFirst = index === 0;
   const isLast = index === total - 1;

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight } from 'lucide-react';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, AlertCircle } from 'lucide-react';
 import type { InterviewType, InterviewConfig, Language } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
@@ -86,6 +86,12 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [selectedAvatarId, setSelectedAvatarId] = useState(DEFAULT_AVATAR_ID);
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(REMOTE_GLB_AVATAR_URL);
   const [avatarFileName, setAvatarFileName] = useState('');
+  const [errors, setErrors] = useState<{ apiKey?: string; jobDesc?: string; resume?: string }>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const resumeRef = useRef<HTMLDivElement>(null);
+  const apiKeyRef = useRef<HTMLInputElement>(null);
+  const jobDescRef = useRef<HTMLTextAreaElement>(null);
 
   const t = (key: Parameters<typeof getTranslation>[1]) => getTranslation(language, key);
 
@@ -114,6 +120,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
     try {
       const text = await extractTextFromPDF(file);
       setResumeText(text);
+      setErrors((prev) => ({ ...prev, resume: undefined }));
+      setErrorMessage(null);
     } catch (err) {
       console.error(err);
       alert('Failed to parse PDF.');
@@ -124,11 +132,30 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!apiKey || !resumeText || !jobDesc) {
-      alert('Please provide API key, resume, and job description.');
+    const newErrors: { apiKey?: string; jobDesc?: string; resume?: string } = {};
+    if (!apiKey.trim()) newErrors.apiKey = t('apiKeyRequired');
+    if (!jobDesc.trim()) newErrors.jobDesc = t('jobDescRequired');
+    if (!resumeText.trim()) newErrors.resume = t('resumeRequired');
+
+    if (newErrors.apiKey || newErrors.jobDesc || newErrors.resume) {
+      setErrors(newErrors);
+      const firstMsg = newErrors.resume || newErrors.apiKey || newErrors.jobDesc || '';
+      setErrorMessage(firstMsg);
+
+      if (newErrors.resume) {
+        resumeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (newErrors.apiKey) {
+        apiKeyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        apiKeyRef.current?.focus();
+      } else if (newErrors.jobDesc) {
+        jobDescRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        jobDescRef.current?.focus();
+      }
       return;
     }
-    
+
+    setErrors({});
+    setErrorMessage(null);
     localStorage.setItem('interview_apikey', apiKey);
     const selectedAvatar = PREDEFINED_AVATARS.find(a => a.id === selectedAvatarId);
 
@@ -236,7 +263,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
           </div>
         ) : (
           /* ──────── Step 2: Details Form ──────── */
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          <form noValidate onSubmit={handleSubmit} className="p-8 space-y-6">
             {/* Selected type badge */}
             <button
               type="button"
@@ -281,14 +308,28 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     <Key className="w-4 h-4" /> {t('apiKey')}
                   </label>
                   <input
+                    ref={apiKeyRef}
                     type="password"
-                    required
-                    className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                    className={`w-full bg-dark-800 border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
+                      errors.apiKey ? 'border-red-500 ring-2 ring-red-500/40' : 'border-gray-700'
+                    }`}
                     placeholder="sk-..."
                     value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
+                    onChange={(e) => {
+                      setApiKey(e.target.value);
+                      if (errors.apiKey) {
+                        setErrors((prev) => ({ ...prev, apiKey: undefined }));
+                        setErrorMessage(null);
+                      }
+                    }}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Stored locally in your browser.</p>
+                  {errors.apiKey ? (
+                    <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> {errors.apiKey}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">Stored locally in your browser.</p>
+                  )}
                 </div>
               </div>
 
@@ -315,35 +356,63 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">{t('jobDesc')}</label>
                   <textarea
-                    required
+                    ref={jobDescRef}
                     rows={2}
-                    className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-none"
+                    className={`w-full bg-dark-800 border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-none ${
+                      errors.jobDesc ? 'border-red-500 ring-2 ring-red-500/40' : 'border-gray-700'
+                    }`}
                     placeholder={t('jobDescPlaceholder')}
                     value={jobDesc}
-                    onChange={(e) => setJobDesc(e.target.value)}
+                    onChange={(e) => {
+                      setJobDesc(e.target.value);
+                      if (errors.jobDesc) {
+                        setErrors((prev) => ({ ...prev, jobDesc: undefined }));
+                        setErrorMessage(null);
+                      }
+                    }}
                   />
+                  {errors.jobDesc && (
+                    <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> {errors.jobDesc}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="border-t border-gray-800 pt-6">
               <label className="block text-sm font-medium text-gray-400 mb-2">{t('uploadResume')}</label>
-              <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center hover:bg-dark-800/50 transition-colors cursor-pointer relative">
+              <div
+                ref={resumeRef}
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer relative ${
+                  errors.resume
+                    ? 'border-red-500 bg-red-500/10 shadow-lg shadow-red-500/10 ring-2 ring-red-500/40'
+                    : 'border-gray-700 hover:bg-dark-800/50'
+                }`}
+              >
                 <input
                   type="file"
                   accept="application/pdf"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   onChange={handleFileUpload}
                 />
-                <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                <Upload className={`w-8 h-8 mx-auto mb-2 ${errors.resume ? 'text-red-400' : 'text-gray-500'}`} />
                 {loading ? (
                   <p className="text-primary-400 animate-pulse">Parsing PDF...</p>
                 ) : fileName ? (
                   <p className="text-green-400 font-medium">{fileName} extracted successfully.</p>
                 ) : (
-                  <p className="text-gray-400">Click or drag your CV here</p>
+                  <p className={errors.resume ? 'text-red-300 font-medium' : 'text-gray-400'}>
+                    Click or drag your CV here
+                  </p>
                 )}
               </div>
+              {errors.resume && (
+                <div className="mt-2.5 flex items-center gap-2 p-3 bg-red-500/15 border border-red-500/40 rounded-xl text-red-300 text-sm animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span className="font-medium">{errors.resume}</span>
+                </div>
+              )}
             </div>
 
             <div className="border-t border-gray-800 pt-6">
@@ -407,6 +476,13 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 </div>
               )}
             </div>
+
+            {errorMessage && (
+              <div className="bg-red-500/15 border border-red-500/40 text-red-300 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                <span className="text-sm font-medium">{errorMessage}</span>
+              </div>
+            )}
 
             <button
               type="submit"

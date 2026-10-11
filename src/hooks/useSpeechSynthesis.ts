@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { computeProsody, pickVoice, splitSentences } from '../lib/speech';
+import { computeProsody, pickVoice, sanitizeForSpeech, splitSentences } from '../lib/speech';
 import { globalSpeechVisemeTracker, playEdgeSpeech, stopEdgeSpeech } from '../lib/audio';
 import type { Language } from '../types/interview';
 
@@ -13,9 +13,10 @@ export const useSpeechSynthesis = (language: Language) => {
   const speak = useCallback(
     async (text: string) => {
       if (!text) return;
+      const speechText = sanitizeForSpeech(text);
 
       // 1. Try Microsoft Edge Neural TTS with real-time Web Audio FFT analysis
-      const success = await playEdgeSpeech(text, language, {
+      const success = await playEdgeSpeech(speechText, language, {
         onStart: () => setIsSpeaking(true),
         onEnd: () => setIsSpeaking(false),
         onError: () => setIsSpeaking(false),
@@ -35,7 +36,7 @@ export const useSpeechSynthesis = (language: Language) => {
         started = true;
         synth.removeEventListener('voiceschanged', doSpeak);
 
-        const sentences = splitSentences(text);
+        const sentences = splitSentences(speechText);
         if (sentences.length === 0) return;
 
         setIsSpeaking(true);
