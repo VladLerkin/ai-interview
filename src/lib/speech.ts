@@ -124,8 +124,8 @@ export const pickVoice = (voices: SpeechSynthesisVoice[], lang: string): SpeechS
 export const sanitizeForSpeech = (text: string): string => {
   if (!text) return '';
   return text
-    // Replace Greek question mark (';' or ';') with standard '?' for the TTS engine
-    .replace(/([^\s\d])\s*[;;]+(?=\s|$)/g, '$1?')
+    // Replace Greek question mark (';' or ';') at clause/sentence ends with standard '?' for TTS
+    .replace(/\s*[;;]+(?=\s|$)/g, '?')
     // Replace any remaining stray semicolons with a gentle comma pause
     .replace(/[;;]+/g, ',')
     .trim();
