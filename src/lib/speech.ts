@@ -111,7 +111,7 @@ export const pickVoice = (voices: SpeechSynthesisVoice[], lang: string): SpeechS
 /** Splits text into sentences. Avoids regex lookbehind for older Safari. */
 export const splitSentences = (text: string): string[] =>
   text
-    .match(/[^.!?…]+[.!?…]*/g)
+    .match(/[^.!?…;;]+[.!?…;;]*/g)
     ?.map((s) => s.trim())
     .filter((s) => s.length > 0) || [text];
 

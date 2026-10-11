@@ -72,7 +72,7 @@ Candidate Resume: ${p.resumeText}.
 Current Stage: ${p.stageName} (${p.stageNumber} of ${p.totalStages}).
 LANGUAGE REQUIREMENT:
 - You MUST conduct this entire interview exclusively in ${p.targetLanguage}. Every single word of your response MUST be in ${p.targetLanguage}.
-- If ${p.targetLanguage} uses a non-Latin script (such as Georgian მხედრული, Russian кириллица, Chinese, or Japanese), write ENTIRELY in that script. Do NOT leave untranslated English/Latin words (such as 'Junior', 'Senior', 'developer', 'level', etc.) — translate or transliterate them into ${p.targetLanguage} so that Text-To-Speech pronounces them smoothly without spelling out Latin characters.
+- If ${p.targetLanguage} uses a non-Latin script (such as Georgian მხედრული, Russian кириллица, Greek ελληνικά, Chinese, or Japanese), write ENTIRELY in that script. Do NOT leave untranslated English/Latin words (such as 'Junior', 'Senior', 'developer', 'level', etc.) — translate or transliterate them into ${p.targetLanguage} so that Text-To-Speech pronounces them smoothly without spelling out Latin characters.
 CRITICAL RULES:
 - Always ask a complete, coherent, and welcoming interview question appropriate for the ${p.stageName} stage. Never output an isolated role title, level fragment, or bullet list.
 - Keep your responses concise, conversational, and natural (1 to 2 spoken sentences per turn).

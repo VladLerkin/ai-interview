@@ -48,7 +48,7 @@ The conversation state is orchestrated via a deterministic state machine built o
 
 ### Multilingual Prompts
 System prompts enforce strict cultural and script consistency:
-- Non-Latin languages (e.g. Georgian `მხედრული`, Russian Cyrillic, Chinese, Japanese) never mix raw English terms into spoken replies (e.g. "Junior Java Developer" is naturally translated or transliterated).
+- Non-Latin languages (e.g. Georgian `მხედრული`, Russian Cyrillic, Greek `ελληνικά`, Chinese, Japanese) never mix raw English terms into spoken replies (e.g. "Junior Java Developer" is naturally translated or transliterated).
 
 ---
 
@@ -98,13 +98,14 @@ High-fidelity neural voices are served with zero third-party subscriptions:
 - **Cloudflare Pages Function (`functions/api/tts.ts`)**:
   - Connects directly to Microsoft Edge neural TTS endpoints via outbound WebSocket.
   - Aggregates binary MPEG audio chunks and streams MP3 data directly to the browser.
-  - Provides natural neural voices across 12 locales:
+  - Provides natural neural voices across 13 locales:
     - 🇺🇸 `en-US-AvaNeural`
     - 🇬🇧 `en-GB-SoniaNeural`
     - 🇷🇺 `ru-RU-SvetlanaNeural`
     - 🇪🇸 `es-ES-XimenaNeural`
     - 🇩🇪 `de-DE-KatjaNeural`
     - 🇫🇷 `fr-FR-DeniseNeural`
+    - 🇬🇷 `el-GR-AthinaNeural`
     - 🇨🇳 `zh-CN-XiaoxiaoNeural`
     - 🇯🇵 `ja-JP-NanamiNeural`
     - 🇬🇪 `ka-GE-EkaNeural`

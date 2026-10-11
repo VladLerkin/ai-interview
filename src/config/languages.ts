@@ -14,6 +14,7 @@ export const LANGUAGES: LanguageOption[] = [
   { code: 'it-IT', label: 'Italian (Italiano)' },
   { code: 'de-DE', label: 'German (Deutsch)' },
   { code: 'fr-FR', label: 'French (Français)' },
+  { code: 'el-GR', label: 'Greek (Ελληνικά)' },
   { code: 'tr-TR', label: 'Turkish (Türkçe)' },
   { code: 'he-IL', label: 'Hebrew (עברית)' },
   { code: 'ka-GE', label: 'Georgian (ქართული)' },

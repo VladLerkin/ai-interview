@@ -7,6 +7,7 @@ export type Language =
   | 'it-IT'
   | 'de-DE'
   | 'fr-FR'
+  | 'el-GR'
   | 'tr-TR'
   | 'he-IL'
   | 'ka-GE'

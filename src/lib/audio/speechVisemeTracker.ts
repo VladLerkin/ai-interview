@@ -29,17 +29,17 @@ function charToViseme(char: string): Viseme {
   const c = char.toLowerCase();
 
   // 1. Bilabials (lips completely touch / close)
-  if (['m', 'b', 'p', 'м', 'б', 'п', 'მ', 'ბ', 'პ', 'ფ'].includes(c)) {
+  if (['m', 'b', 'p', 'м', 'б', 'п', 'მ', 'ბ', 'პ', 'ფ', 'μ', 'β', 'π'].includes(c)) {
     return VISEME_CLOSED;
   }
 
   // 2. Open back vowels (/a/, /ah/)
-  if (['a', 'á', 'à', 'â', 'ä', 'а', 'я', 'ა'].includes(c)) {
+  if (['a', 'á', 'à', 'â', 'ä', 'а', 'я', 'ა', 'α', 'ά'].includes(c)) {
     return VISEME_AH;
   }
 
   // 3. Rounded back vowels (/o/, /oh/)
-  if (['o', 'ó', 'ò', 'ô', 'ö', 'о', 'ё', 'ო'].includes(c)) {
+  if (['o', 'ó', 'ò', 'ô', 'ö', 'о', 'ё', 'ო', 'ο', 'ό', 'ω', 'ώ'].includes(c)) {
     return VISEME_OH;
   }
 
@@ -49,12 +49,12 @@ function charToViseme(char: string): Viseme {
   }
 
   // 5. Front spread vowels (/e/, /eh/)
-  if (['e', 'é', 'è', 'ê', 'ë', 'е', 'э', 'ე'].includes(c)) {
+  if (['e', 'é', 'è', 'ê', 'ë', 'е', 'э', 'ე', 'ε', 'έ'].includes(c)) {
     return VISEME_WIDE;
   }
 
   // 6. High front vowels (/i/, /ee/)
-  if (['i', 'í', 'ì', 'î', 'ï', 'y', 'и', 'ი'].includes(c)) {
+  if (['i', 'í', 'ì', 'î', 'ï', 'y', 'и', 'ი', 'ι', 'ί', 'η', 'ή', 'υ', 'ύ', 'ϊ', 'ΐ', 'ϋ', 'ΰ'].includes(c)) {
     return VISEME_EE;
   }
 
@@ -67,7 +67,8 @@ function charToViseme(char: string): Viseme {
   if ([
     'f', 'v', 's', 'z', 'c', 'x',
     'в', 'ф', 'с', 'з', 'ц', 'ш', 'щ', 'ж',
-    'ს', 'ზ', 'ც', 'ძ', 'წ', 'შ', 'ჟ', 'ჩ', 'ჯ', 'ჭ'
+    'ს', 'ზ', 'ც', 'ძ', 'წ', 'შ', 'ჟ', 'ჩ', 'ჯ', 'ჭ',
+    'σ', 'ς', 'ζ', 'θ', 'δ', 'φ', 'ξ', 'ψ'
   ].includes(c)) {
     return VISEME_DENTAL;
   }
@@ -76,7 +77,8 @@ function charToViseme(char: string): Viseme {
   if ([
     't', 'd', 'n', 'l', 'r', 'k', 'g', 'h', 'j', 'q',
     'д', 'т', 'н', 'л', 'р', 'к', 'г', 'х', 'ч',
-    'დ', 'თ', 'ნ', 'ლ', 'რ', 'კ', 'გ', 'ხ', 'ყ', 'ღ'
+    'დ', 'თ', 'ნ', 'ლ', 'რ', 'კ', 'გ', 'ხ', 'ყ', 'ღ',
+    'τ', 'ν', 'λ', 'ρ', 'κ', 'γ', 'χ'
   ].includes(c)) {
     return VISEME_WIDE;
   }
@@ -266,7 +268,7 @@ export class SpeechVisemeTracker {
     this.speechStartTimestamp = now;
 
     // Split text into tokens including Western and CJK punctuation
-    const tokens = text.match(/[^\s.,!?;:…。，、！？：；~—–\-]+|[.,!?;:…。，、！？：；~—–\-]+/g) || [text];
+    const tokens = text.match(/[^\s.,!?;:…。，、！？：；~—–\-;]+|[.,!?;:…。，、！？：；~—–\-;]+/g) || [text];
     
     // First pass: compute nominal durations
     interface TokenStep {
@@ -279,9 +281,9 @@ export class SpeechVisemeTracker {
     let totalNominalMs = 0;
 
     for (const token of tokens) {
-      if (/^[.,!?;:…。，、！？：；~—–\-]+$/.test(token)) {
+      if (/^[.,!?;:…。，、！？：；~—–\-;]+$/.test(token)) {
         // Punctuation pause (full stop vs comma/clause)
-        const isSentenceEnd = /[.!?。！？]/.test(token);
+        const isSentenceEnd = /[.!?。！？;;]/.test(token);
         const pauseMs = isSentenceEnd ? 260 : 130;
         steps.push({ chars: '', isPause: true, nominalMs: pauseMs });
         totalNominalMs += pauseMs;
@@ -454,7 +456,7 @@ export class SpeechVisemeTracker {
       word = sentence.substring(charIndex, charIndex + charLength);
     } else {
       const sub = sentence.substring(charIndex);
-      const match = sub.match(/^[^\s.,!?;:…。，、！？：；~—–\-]+/);
+      const match = sub.match(/^[^\s.,!?;:…。，、！？：；~—–\-;]+/);
       word = match ? match[0] : '';
     }
 

@@ -13,6 +13,7 @@ function getEdgeVoice(lang = 'en-US'): { voice: string; locale: string } {
   if (l.startsWith('es')) return { voice: 'es-ES-XimenaNeural', locale: 'es-ES' };
   if (l.startsWith('de')) return { voice: 'de-DE-KatjaNeural', locale: 'de-DE' };
   if (l.startsWith('fr')) return { voice: 'fr-FR-DeniseNeural', locale: 'fr-FR' };
+  if (l.startsWith('el') || l.startsWith('gr')) return { voice: 'el-GR-AthinaNeural', locale: 'el-GR' };
   if (l.startsWith('zh')) return { voice: 'zh-CN-XiaoxiaoNeural', locale: 'zh-CN' };
   if (l.startsWith('ja')) return { voice: 'ja-JP-NanamiNeural', locale: 'ja-JP' };
   if (l.startsWith('ka')) return { voice: 'ka-GE-EkaNeural', locale: 'ka-GE' };
