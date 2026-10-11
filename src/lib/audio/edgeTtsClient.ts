@@ -3,6 +3,8 @@ import { globalSpeechVisemeTracker } from './speechVisemeTracker';
 
 let currentAudio: HTMLAudioElement | null = null;
 let currentBlobUrl: string | null = null;
+let currentAbortController: AbortController | null = null;
+let currentRequestId = 0;
 
 export interface PlaySpeechCallbacks {
   onStart?: () => void;
@@ -21,24 +23,43 @@ export async function playEdgeSpeech(
   callbacks?: PlaySpeechCallbacks,
 ): Promise<boolean> {
   stopEdgeSpeech();
+  const requestId = ++currentRequestId;
+  const abortController = new AbortController();
+  currentAbortController = abortController;
 
   try {
     const res = await fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, lang }),
+      signal: abortController.signal,
     });
+
+    if (abortController.signal.aborted || requestId !== currentRequestId) {
+      return false;
+    }
 
     if (!res.ok) {
       throw new Error(`TTS server responded with status: ${res.status}`);
     }
 
     const blob = await res.blob();
+    if (abortController.signal.aborted || requestId !== currentRequestId) {
+      return false;
+    }
+
     if (blob.size === 0) {
       throw new Error('Received empty audio blob');
     }
 
     const url = URL.createObjectURL(blob);
+    if (abortController.signal.aborted || requestId !== currentRequestId) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch { /* ignore */ }
+      return false;
+    }
+
     currentBlobUrl = url;
     const audio = new Audio(url);
     currentAudio = audio;
@@ -83,13 +104,23 @@ export async function playEdgeSpeech(
       if (currentAudio === audio) {
         currentAudio = null;
       }
-      callbacks?.onError?.(new Error('Audio playback failed'));
+      if (!abortController.signal.aborted && requestId === currentRequestId) {
+        callbacks?.onError?.(new Error('Audio playback failed'));
+      }
     };
 
     await audio.play();
     return true;
   } catch (err: unknown) {
     globalSpeechVisemeTracker.reset();
+    if (abortController.signal.aborted || requestId !== currentRequestId) {
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+      currentAudio = null;
+      return false;
+    }
     const error = err instanceof Error ? err : new Error(String(err));
     console.warn('[EdgeTTS] Could not play edge speech, falling back to browser synthesis:', error.message);
     if (currentBlobUrl) {
@@ -106,11 +137,19 @@ export async function playEdgeSpeech(
  * Immediately stops any playing Edge TTS audio and cleans up resources.
  */
 export function stopEdgeSpeech(): void {
+  currentRequestId++;
+  if (currentAbortController) {
+    try {
+      currentAbortController.abort();
+    } catch { /* ignore */ }
+    currentAbortController = null;
+  }
   globalSpeechVisemeTracker.reset();
   if (currentAudio) {
     try {
       currentAudio.pause();
       currentAudio.currentTime = 0;
+      currentAudio.src = '';
     } catch { /* ignore */ }
     currentAudio = null;
   }
@@ -120,4 +159,18 @@ export function stopEdgeSpeech(): void {
     } catch { /* ignore */ }
     currentBlobUrl = null;
   }
+}
+
+/**
+ * Immediately stops all speech synthesis, both Edge Neural TTS audio and
+ * native browser SpeechSynthesis (window.speechSynthesis).
+ */
+export function stopAllSpeech(): void {
+  stopEdgeSpeech();
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch { /* ignore */ }
+  }
+  globalSpeechVisemeTracker.setActive(false);
 }

@@ -39,6 +39,7 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [threadId] = useState(() => crypto.randomUUID());
 
+  const isMountedRef = useRef(true);
   const initCalledRef = useRef(false);
   const speakRef = useRef(speak);
   const greetingTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -50,7 +51,12 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
     speakRef.current = speak;
   }, [speak]);
 
-  useEffect(() => () => clearTimeout(greetingTimerRef.current), []);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      clearTimeout(greetingTimerRef.current);
+    };
+  }, []);
 
   const runConfig = useMemo(() => ({ configurable: { thread_id: threadId } }), [threadId]);
 
@@ -69,12 +75,18 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
 
   const speakAfterGreeting = useCallback((text: string) => {
     clearTimeout(greetingTimerRef.current);
-    greetingTimerRef.current = setTimeout(() => speakRef.current(text), GREETING_DELAY_MS);
+    if (!isMountedRef.current) return;
+    greetingTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        speakRef.current(text);
+      }
+    }, GREETING_DELAY_MS);
   }, []);
 
   /** Pass to the avatar: flushes speech that arrived while the model was still loading. */
   const handleModelReady = useCallback(() => {
     modelReadyRef.current = true;
+    if (!isMountedRef.current) return;
     const pending = pendingSpeechRef.current;
     if (pending) {
       pendingSpeechRef.current = null;
@@ -84,12 +96,14 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
 
   const commit = useCallback(async (state: InterviewGraphState) => {
     const next = toSnapshot(state);
+    if (!isMountedRef.current) return next;
     setSnapshot(next);
     await setStoredData('interviewState', next);
     return next;
   }, []);
 
   const showError = useCallback((text: string) => {
+    if (!isMountedRef.current) return;
     setSnapshot((prev) => ({ ...prev, nextInterviewerSpeech: text }));
   }, []);
 
@@ -104,6 +118,7 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
     (async () => {
       try {
         const saved = await getStoredData('interviewState');
+        if (!isMountedRef.current) return;
         if (saved) {
           // Don't auto-speak on restore: without a user gesture the browser blocks TTS
           // and `isSpeaking` would get stuck at true.
@@ -112,13 +127,16 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
         }
 
         const result = await graph.invoke({ ...interviewContext, interviewStage: 'warmup', history: [] }, runConfig);
+        if (!isMountedRef.current) return;
         const next = await commit(result);
+        if (!isMountedRef.current) return;
 
         if (next.nextInterviewerSpeech) {
           if (modelReadyRef.current) speakAfterGreeting(next.nextInterviewerSpeech);
           else pendingSpeechRef.current = next.nextInterviewerSpeech;
         }
       } catch (err) {
+        if (!isMountedRef.current) return;
         console.error('Agent execution failed:', err);
         showError(`Error starting interview. Please check your API key and connection. (${errorMessage(err)})`);
       }
@@ -129,7 +147,7 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
   const submitAnswer = useCallback(
     async (answer: string): Promise<boolean> => {
       const text = answer.trim();
-      if (!text || !agent) return false;
+      if (!text || !agent || !isMountedRef.current) return false;
 
       setIsEvaluating(true);
       try {
@@ -146,15 +164,21 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
           },
           runConfig,
         );
+        if (!isMountedRef.current) return false;
         const next = await commit(result);
-        if (next.nextInterviewerSpeech) speakRef.current(next.nextInterviewerSpeech);
+        if (isMountedRef.current && next.nextInterviewerSpeech) {
+          speakRef.current(next.nextInterviewerSpeech);
+        }
         return true;
       } catch (err) {
+        if (!isMountedRef.current) return false;
         console.error('Agent execution failed:', err);
         showError(`Error communicating with AI. (${errorMessage(err)})`);
         return false;
       } finally {
-        setIsEvaluating(false);
+        if (isMountedRef.current) {
+          setIsEvaluating(false);
+        }
       }
     },
     [agent, interviewContext, snapshot, runConfig, commit, showError],

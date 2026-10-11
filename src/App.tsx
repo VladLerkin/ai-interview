@@ -3,6 +3,7 @@ import type { InterviewConfig } from './types/interview';
 import { SetupModal } from './components/SetupModal';
 import { InterviewRoom } from './components/interview/InterviewRoom';
 import { getStoredData, setStoredData, deleteStoredData } from './lib/store';
+import { stopAllSpeech } from './lib/audio';
 import { Download } from 'lucide-react';
 
 function App() {
@@ -50,7 +51,7 @@ function App() {
   };
 
   const handleReset = async () => {
-    window.speechSynthesis.cancel();
+    stopAllSpeech();
     await deleteStoredData('interviewState');
     // Keep config so they don't have to re-upload the resume
     // We just trigger a re-render of SetupModal so they can review or change settings

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useInterviewSession } from '../../hooks/useInterviewSession';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
@@ -24,6 +24,20 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
 
   const speech = snapshot.nextInterviewerSpeech;
   const inputLocked = isEvaluating || tts.isSpeaking;
+
+  const handleEnd = useCallback(() => {
+    tts.stop();
+    stt.stop();
+    onReset();
+  }, [tts, stt, onReset]);
+
+  // Clean up speech and microphone if the room is exited or unmounted
+  useEffect(() => {
+    return () => {
+      tts.stop();
+      stt.stop();
+    };
+  }, [tts, stt]);
 
   const handleSubmit = async () => {
     if (stt.isListening) stt.stop();
@@ -53,14 +67,14 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
           isEvaluating={isEvaluating}
           onModelReady={handleModelReady}
           onReplay={() => tts.speak(speech)}
-          onEnd={onReset}
+          onEnd={handleEnd}
           t={t}
         />
 
         {/* Action Bar */}
         <div className="h-32 glass-panel rounded-2xl flex items-center p-4 gap-4">
           {snapshot.isCompleted ? (
-            <InterviewCompleted onReturn={onReset} t={t} />
+            <InterviewCompleted onReturn={handleEnd} t={t} />
           ) : (
             <AnswerBar
               value={stt.transcript + (stt.interimTranscript ? ' ' + stt.interimTranscript : '')}
@@ -79,7 +93,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
       </div>
 
       {/* Right Panel: HUD & Feedback */}
-      <FeedbackPanel feedback={snapshot.latestFeedback} history={snapshot.history ?? []} onEnd={onReset} t={t} />
+      <FeedbackPanel feedback={snapshot.latestFeedback} history={snapshot.history ?? []} onEnd={handleEnd} t={t} />
     </div>
   );
 };
