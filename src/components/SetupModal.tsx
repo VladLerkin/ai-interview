@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
-import { getStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, AlertCircle } from 'lucide-react';
+import { getStoredData, setStoredData } from '../lib/store';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, AlertCircle, X } from 'lucide-react';
 import type { InterviewType, InterviewConfig, Language } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
@@ -90,6 +90,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const resumeRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const apiKeyRef = useRef<HTMLInputElement>(null);
   const jobDescRef = useRef<HTMLTextAreaElement>(null);
 
@@ -127,6 +128,28 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       alert('Failed to parse PDF.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveResume = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setFileName('');
+    setResumeText('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    try {
+      const stored = await getStoredData('interviewConfig');
+      if (stored) {
+        await setStoredData('interviewConfig', {
+          ...stored,
+          resumeText: '',
+          resumeFileName: undefined,
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to clear stored resume:', err);
     }
   };
 
@@ -391,16 +414,33 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 }`}
               >
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="application/pdf"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   onChange={handleFileUpload}
                 />
+
+                {fileName && !loading && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveResume}
+                    className="absolute top-3 right-3 z-20 p-1.5 rounded-lg bg-dark-800/90 hover:bg-red-500/20 text-gray-400 hover:text-red-400 border border-gray-700 hover:border-red-500/40 transition-all shadow-md flex items-center justify-center group/del"
+                    title="Remove resume"
+                    aria-label="Remove resume"
+                  >
+                    <X className="w-4 h-4 transition-transform group-hover/del:scale-110" />
+                  </button>
+                )}
+
                 <Upload className={`w-8 h-8 mx-auto mb-2 ${errors.resume ? 'text-red-400' : 'text-gray-500'}`} />
                 {loading ? (
                   <p className="text-primary-400 animate-pulse">Parsing PDF...</p>
                 ) : fileName ? (
-                  <p className="text-green-400 font-medium">{fileName} extracted successfully.</p>
+                  <div className="flex flex-col items-center gap-1 px-6">
+                    <p className="text-green-400 font-medium break-all">{fileName} extracted successfully.</p>
+                    <span className="text-xs text-gray-500 hover:text-gray-400 transition-colors">Click or drag a new PDF to replace</span>
+                  </div>
                 ) : (
                   <p className={errors.resume ? 'text-red-300 font-medium' : 'text-gray-400'}>
                     Click or drag your CV here
