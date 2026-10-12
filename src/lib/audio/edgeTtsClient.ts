@@ -128,7 +128,6 @@ export async function playEdgeSpeech(
       currentBlobUrl = null;
     }
     currentAudio = null;
-    callbacks?.onError?.(error);
     return false;
   }
 }

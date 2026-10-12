@@ -146,6 +146,23 @@ async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Ar
   });
 }
 
+async function synthesizeEdgeSpeechWithRetry(text: string, lang: string, maxAttempts = 3): Promise<Uint8Array> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await synthesizeEdgeSpeech(text, lang);
+    } catch (err: unknown) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[Cloudflare TTS] Attempt ${attempt} failed: ${msg}. Retrying...`);
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
+  }
+  throw lastError || new Error('Edge TTS failed after retries');
+}
+
 /**
  * Cloudflare Pages Function: /api/tts
  * Synthesizes Microsoft Edge Neural TTS audio and streams it to the client.
@@ -167,7 +184,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       });
     }
 
-    const audioBytes = await synthesizeEdgeSpeech(text, lang);
+    const audioBytes = await synthesizeEdgeSpeechWithRetry(text, lang);
 
     return new Response(audioBytes.buffer as ArrayBuffer, {
       status: 200,

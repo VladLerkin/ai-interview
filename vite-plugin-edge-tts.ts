@@ -19,6 +19,32 @@ function getEdgeVoice(lang: string = 'en-US'): string {
   return 'en-US-AvaNeural';
 }
 
+async function synthesizeEdgeSpeechWithRetry(text: string, voice: string, maxAttempts = 3): Promise<Buffer> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const tts = new MsEdgeTTS();
+      await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const { audioStream } = tts.toStream(text);
+      const chunks: Buffer[] = [];
+      await new Promise<void>((resolve, reject) => {
+        audioStream.on('data', (c: Buffer) => chunks.push(c));
+        audioStream.on('end', () => resolve());
+        audioStream.on('error', (err: unknown) => reject(err));
+      });
+      return Buffer.concat(chunks);
+    } catch (err: unknown) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[Edge-TTS] Attempt ${attempt} failed: ${msg}. Retrying...`);
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
+  }
+  throw lastError || new Error('TTS failed after retries');
+}
+
 /**
  * Vite plugin that provides a high-quality, free Microsoft Edge TTS audio proxy at `/api/tts`.
  */
@@ -57,29 +83,22 @@ export function edgeTtsPlugin(): Plugin {
           }
 
           const voice = getEdgeVoice(lang);
-          const tts = new MsEdgeTTS();
-          await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-          const { audioStream } = tts.toStream(text);
+          const audioBuffer = await synthesizeEdgeSpeechWithRetry(text, voice);
 
           res.writeHead(200, {
             'Content-Type': 'audio/mpeg',
+            'Content-Length': String(audioBuffer.length),
             'Cache-Control': 'no-cache',
             'Access-Control-Allow-Origin': '*',
           });
 
-          audioStream.pipe(res);
-          audioStream.on('error', (err: any) => {
-            console.error('[Edge-TTS] Stream error:', err);
-            if (!res.headersSent) {
-              res.statusCode = 500;
-              res.end('TTS error');
-            }
-          });
+          res.end(audioBuffer);
         } catch (err) {
           console.error('[Edge-TTS] Generation error:', err);
           if (!res.headersSent) {
             res.statusCode = 500;
-            res.end('Internal server error');
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal server error' }));
           }
         }
       });

@@ -64,6 +64,12 @@ export const useSpeechSynthesis = (language: Language) => {
 
       // 2. Fallback to native window.speechSynthesis
       const synth = window.speechSynthesis;
+      try {
+        synth.cancel();
+        synth.resume();
+      } catch {
+        /* ignore */
+      }
       let started = false;
 
       const doSpeak = () => {
