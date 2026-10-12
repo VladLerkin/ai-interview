@@ -27,18 +27,6 @@
 - **Resume Parsing:** Upload your CV (PDF), and the AI will extract your background and ask contextualized questions.
 - **Live Feedback & Assessment:** The AI continuously evaluates your responses, offering grammar corrections, vocabulary suggestions, and an "ideal" suggested answer.
 
-## 🛠️ Tech Stack
-
-[![Node.js](https://img.shields.io/badge/Node.js-26.8.2-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![LangGraph](https://img.shields.io/badge/LangGraph-1.4.21-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
-[![React](https://img.shields.io/badge/React-19.3.0-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
-
-- **Runtime**: [Node.js](https://nodejs.org/) (`v26.8.2`)
-- **Agent Workflow**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.21`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.17`)
-- **Frontend Core**: [React 19](https://react.dev/) (`^19.3.0`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`)
-
 ## Supported Languages & Voices
 
 The simulator provides full UI localization, tailored LLM prompt instructions, and natural female neural voices for each supported language:
