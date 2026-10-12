@@ -25,7 +25,7 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
 
 - **Node.js**: `18+` (tested with Node `24` / `26`)
 - **AI Agent & LLM**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.21`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.17`) — Multi-agent state machine with dynamic interview routing
-- **Frontend Core**: [React 19](https://react.dev/) (`^19.2.8`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`)
+- **Frontend Core**: [React 19](https://react.dev/) (`^19.3.0`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`)
 
 ## Supported Languages & Voices
 
