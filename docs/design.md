@@ -11,13 +11,13 @@ The application is engineered as a high-performance single-page Progressive Web 
 2. **Real-Time Speech & Serverless Audio** (Cloudflare Pages Functions native Edge TTS + Web Speech API)
 3. **3D Interactive Avatar Engine** (Three.js, Oculus Visemes, Apple ARKit blendshapes, and procedural micro-animations)
 
-### Technology Stack & Versions
-- **UI & Runtime**: React 19 (`^19.2.8`), TypeScript 7 (`^7.0.2`), Vite 8 (`^8.3.0`), Tailwind CSS 4 (`^4.3.3`), Vite PWA 2 (`^2.0.0`)
-- **Graphics & 3D**: Three.js (`^0.186.1`), `@pixiv/three-vrm` (`^3.5.5`), GLTF/GLB Loader
-- **AI & Workflow**: `@langchain/langgraph` (`^1.4.18`), `@langchain/core` (`^1.2.14`), Google GenAI (`^2.3.2`), OpenAI (`^1.6.1`), Anthropic (`^1.5.11`)
-- **Speech & Audio**: Microsoft Edge TTS (`msedge-tts` `^2.0.9` & Cloudflare Pages Functions), Web Audio API (FFT AnalyserNode), Web Speech API
-- **Document & Data**: `pdfjs-dist` (`^6.3.289`), `idb` (`^8.0.3`), `lucide-react` (`^1.49.0`), `oxlint` (`^1.81.0`)
-- **Platform**: Cloudflare Pages (`nodejs_compat`), Node.js 26 (`@types/node` `^26.6.5`)
+### Core Technology Stack
+- **Runtime**: Node.js `18+` (tested on Node `24` / `26`)
+- **Agent Workflow**: `@langchain/langgraph` (`^1.4.18`), `@langchain/core` (`^1.2.14`)
+- **3D Engine**: Three.js (`^0.186.1`), `@pixiv/three-vrm` (`^3.5.5`), GLTF/GLB (ARKit 52 blendshapes)
+- **Frontend**: React 19 (`^19.2.8`), TypeScript 7 (`^7.0.2`), Vite 8 (`^8.3.0`), Tailwind CSS 4 (`^4.3.3`)
+- **Speech**: Microsoft Edge Neural TTS, Web Audio API (FFT AnalyserNode), Web Speech API
+- **Deployment & PWA**: Cloudflare Pages (`nodejs_compat`), `vite-plugin-pwa` (`^2.0.0`)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

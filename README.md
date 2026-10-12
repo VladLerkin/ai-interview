@@ -21,31 +21,14 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
 - **Resume Parsing:** Upload your CV (PDF), and the AI will extract your background and ask contextualized questions.
 - **Live Feedback & Assessment:** The AI continuously evaluates your responses, offering grammar corrections, vocabulary suggestions, and an "ideal" suggested answer.
 
-## Tech Stack & Versions
+## Tech Stack
 
-| Category | Technology / Package | Version | Purpose |
-|:---|:---|:---:|:---|
-| **Frontend Framework** | **React** / **React DOM** | `^19.2.8` | Modern declarative component tree & hooks architecture |
-| **Language & Typings** | **TypeScript** | `^7.0.2` | Strict compile-time type verification & AST builds |
-| **Build Tool & Bundler** | **Vite** | `^8.3.0` | High-speed ESM development server and Rollup/Rolldown production builds |
-| **Styling & Design System** | **Tailwind CSS** | `^4.3.3` | Next-gen zero-runtime utility-first CSS styling (`@tailwindcss/vite`) |
-| **PWA & Offline Cache** | **vite-plugin-pwa** | `^2.0.0` | Progressive Web App manifest, service worker lifecycle, and Workbox caching |
-| **3D Graphics & Scene** | **Three.js** | `^0.186.1` | WebGL 60 FPS rendering, lighting, camera transforms, and skeletal rigging |
-| **Avatar Format Support** | **@pixiv/three-vrm** | `^3.5.5` | Humanoid VRM 0.x/1.0 model loader, blendshape proxies, and spring bones |
-| **Agentic AI Workflow** | **@langchain/langgraph** | `^1.4.18` | StateGraph cyclical state machine for multi-stage interview steering & scoring |
-| **LLM Core Framework** | **@langchain/core** | `^1.2.14` | Message primitives (`AIMessage`, `HumanMessage`, `SystemMessage`) and runnables |
-| **LLM Provider SDKs** | **@langchain/google-genai** | `^2.3.2` | Google Gemini 3.8 Flash / 1.5 Flash client |
-| | **@langchain/openai** | `^1.6.1` | OpenAI GPT-4o-Mini and DeepSeek Chat (custom `baseURL`) |
-| | **@langchain/anthropic** | `^1.5.11` | Anthropic Claude 3 Haiku client |
-| **Neural TTS (Dev Server)** | **msedge-tts** | `^2.0.9` | Local Vite proxy for Microsoft Edge Neural Speech synthesis |
-| **Serverless TTS (Cloud)** | **Cloudflare Pages Functions** | Native | Serverless Edge TTS WebSocket proxy (`functions/api/tts.ts`) with retry logic |
-| **Audio & Phonetics** | **Web Audio API** | Native | Real-time `AudioContext` & FFT `AnalyserNode` frequency formant analysis |
-| **Speech Recognition (STT)**| **Web Speech API** | Native | Browser-native `SpeechRecognition` microphone transcript streaming |
-| **PDF Document Parser** | **pdfjs-dist** | `^6.3.289` | Client-side resume parsing directly in browser worker thread |
-| **Client Storage** | **idb** | `^8.0.3` | Promise-based IndexedDB storage for state, resumes, and session recovery |
-| **Icons** | **lucide-react** | `^1.49.0` | Crisp UI icons |
-| **Linter & Code Quality** | **oxlint** | `^1.81.0` | Ultra-fast Rust-based linter |
-| **Serverless Runtime** | **Node.js** (`@types/node`) | `^26.6.5` (Local: `v26.8.2`) | Local execution environment and typing definitions |
+- **Node.js**: `18+` (tested with Node `24` / `26`)
+- **AI Agent & LLM**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.18`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.14`) — Multi-agent state machine with dynamic interview routing
+- **3D Graphics & Avatar**: [Three.js](https://threejs.org/) (`^0.186.1`) & [@pixiv/three-vrm](https://github.com/pixiv/three-vrm) (`^3.5.5`) — Real-time 60 FPS WebGL scene with procedural animations and ARKit/Oculus visemes
+- **Frontend Core**: [React 19](https://react.dev/) (`^19.2.8`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`), [Tailwind CSS 4](https://tailwindcss.com/) (`^4.3.3`)
+- **Speech & Audio**: Microsoft Edge Neural TTS (zero-latency serverless speech), Web Audio API (real-time FFT formant analysis for phonetic lip-sync), Web Speech API (speech recognition)
+- **PWA & Storage**: `vite-plugin-pwa` (`^2.0.0`), IndexedDB (`idb` `^8.0.3`) for persistent interview sessions
 
 ## Supported Languages & Voices
 
