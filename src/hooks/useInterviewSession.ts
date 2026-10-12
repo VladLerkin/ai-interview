@@ -52,6 +52,8 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
   }, [speak]);
 
   useEffect(() => {
+    // Must be reset on (re)mount: StrictMode runs cleanup and then the effect again in dev.
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
       clearTimeout(greetingTimerRef.current);
@@ -119,7 +121,7 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
       try {
         const saved = await getStoredData('interviewState');
         if (!isMountedRef.current) return;
-        if (saved) {
+        if (saved?.nextInterviewerSpeech) {
           // Don't auto-speak on restore: without a user gesture the browser blocks TTS
           // and `isSpeaking` would get stuck at true.
           setSnapshot(saved);
