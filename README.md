@@ -25,10 +25,7 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
 
 - **Node.js**: `18+` (tested with Node `24` / `26`)
 - **AI Agent & LLM**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.18`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.14`) — Multi-agent state machine with dynamic interview routing
-- **3D Graphics & Avatar**: [Three.js](https://threejs.org/) (`^0.186.1`) & [@pixiv/three-vrm](https://github.com/pixiv/three-vrm) (`^3.5.5`) — Real-time 60 FPS WebGL scene with procedural animations and ARKit/Oculus visemes
 - **Frontend Core**: [React 19](https://react.dev/) (`^19.2.8`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`), [Tailwind CSS 4](https://tailwindcss.com/) (`^4.3.3`)
-- **Speech & Audio**: Microsoft Edge Neural TTS (zero-latency serverless speech), Web Audio API (real-time FFT formant analysis for phonetic lip-sync), Web Speech API (speech recognition)
-- **PWA & Storage**: `vite-plugin-pwa` (`^2.0.0`), IndexedDB (`idb` `^8.0.3`) for persistent interview sessions
 
 ## Supported Languages & Voices
 

@@ -14,10 +14,7 @@ The application is engineered as a high-performance single-page Progressive Web 
 ### Core Technology Stack
 - **Runtime**: Node.js `18+` (tested on Node `24` / `26`)
 - **Agent Workflow**: `@langchain/langgraph` (`^1.4.18`), `@langchain/core` (`^1.2.14`)
-- **3D Engine**: Three.js (`^0.186.1`), `@pixiv/three-vrm` (`^3.5.5`), GLTF/GLB (ARKit 52 blendshapes)
 - **Frontend**: React 19 (`^19.2.8`), TypeScript 7 (`^7.0.2`), Vite 8 (`^8.3.0`), Tailwind CSS 4 (`^4.3.3`)
-- **Speech**: Microsoft Edge Neural TTS, Web Audio API (FFT AnalyserNode), Web Speech API
-- **Deployment & PWA**: Cloudflare Pages (`nodejs_compat`), `vite-plugin-pwa` (`^2.0.0`)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
