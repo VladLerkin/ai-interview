@@ -1,7 +1,16 @@
+export interface JobSections {
+  companyOverview?: string;
+  roleOverview?: string;
+  responsibilities?: string;
+  requirements?: string;
+  benefits?: string;
+}
+
 export interface ParsedJob {
   title?: string;
   company?: string;
   description: string;
+  sections?: JobSections;
 }
 
 export function decodeHtmlEntities(text: string): string {
@@ -128,6 +137,100 @@ export function htmlToText(html: string): string {
 }
 
 /**
+ * Automatically detects sections (Company overview, Role, Duties, Tech stack requirements, Benefits)
+ * and groups the text into structured semantic blocks.
+ */
+export function structureJobSections(rawText: string): JobSections {
+  const blocks = rawText.split(/\n\n+/).map((b) => b.trim()).filter(Boolean);
+
+  const companyHeading =
+    /(?:about\s+(?:the\s+)?(?:company|us|[a-z0-9_-]+)|who\s+we\s+are|company\s+overview|our\s+mission|о\s+компании|о\s+нас|о\s+команде|кто\s+мы|наша\s+миссия)/i;
+  const respHeading =
+    /(?:what\s+you(?:['’]ll|\s+will)\s+do|responsibilities|duties|tasks|day\s+to\s+day|key\s+responsibilities|your\s+role|обязанности|чем\s+предстоит\s+заниматься|задачи|что\s+предстоит\s+делать|зона\s+ответственности|ваша\s+роль)/i;
+  const reqHeading =
+    /(?:what\s+you(?:['’]ll|\s+will)\s+(?:need|bring)|requirements|qualifications|skills|tech\s+stack|technical\s+skills|what\s+we(?:['’]re|\s+are)\s+looking\s+for|we\s+expect|требования|что\s+мы\s+ждем|наши\s+ожидания|стек|навыки|требуемый\s+опыт|ожидания\s+от\s+кандидата)/i;
+  const benHeading =
+    /(?:why\s+join|benefits|perks|what\s+we\s+offer|compensation|we\s+offer|work\s+conditions|условия|что\s+мы\s+предлагаем|плюшки|бонусы|бенефиты|условия\s+работы|мы\s+предлагаем)/i;
+  const roleHeading =
+    /(?:role\s+overview|job\s+summary|about\s+the\s+role|what\s+success\s+looks\s+like|overview|position\s+summary|описание\s+вакансии|описание\s+роли)/i;
+
+  const isBoilerplate = (text: string) => {
+    return (
+      /^#LI-[A-Za-z0-9_-]+$/i.test(text) ||
+      /(?:equal\s+opportunity\s+employer|recruitment\s+privacy\s+policy)/i.test(text)
+    );
+  };
+
+  const categorized: Record<keyof JobSections, string[]> = {
+    roleOverview: [],
+    companyOverview: [],
+    responsibilities: [],
+    requirements: [],
+    benefits: [],
+  };
+
+  let currentCategory: keyof JobSections = 'roleOverview';
+  let matchedAnySection = false;
+
+  for (const block of blocks) {
+    if (isBoilerplate(block)) continue;
+
+    const firstLine = block.split('\n')[0].replace(/[:?#]+$/, '').trim();
+    const isShortHeading = firstLine.length <= 60 && !firstLine.startsWith('•');
+
+    if (isShortHeading) {
+      if (companyHeading.test(firstLine)) {
+        currentCategory = 'companyOverview';
+        matchedAnySection = true;
+        const rest = block.split('\n').slice(1).join('\n').trim();
+        if (rest) categorized[currentCategory].push(rest);
+        continue;
+      } else if (respHeading.test(firstLine)) {
+        currentCategory = 'responsibilities';
+        matchedAnySection = true;
+        const rest = block.split('\n').slice(1).join('\n').trim();
+        if (rest) categorized[currentCategory].push(rest);
+        continue;
+      } else if (reqHeading.test(firstLine)) {
+        currentCategory = 'requirements';
+        matchedAnySection = true;
+        const rest = block.split('\n').slice(1).join('\n').trim();
+        if (rest) categorized[currentCategory].push(rest);
+        continue;
+      } else if (benHeading.test(firstLine)) {
+        currentCategory = 'benefits';
+        matchedAnySection = true;
+        const rest = block.split('\n').slice(1).join('\n').trim();
+        if (rest) categorized[currentCategory].push(rest);
+        continue;
+      } else if (roleHeading.test(firstLine)) {
+        currentCategory = 'roleOverview';
+        matchedAnySection = true;
+        const rest = block.split('\n').slice(1).join('\n').trim();
+        if (rest) categorized[currentCategory].push(rest);
+        continue;
+      }
+    }
+
+    categorized[currentCategory].push(block);
+  }
+
+  if (!matchedAnySection) {
+    return {
+      roleOverview: rawText,
+    };
+  }
+
+  return {
+    roleOverview: categorized.roleOverview.length > 0 ? categorized.roleOverview.join('\n\n') : undefined,
+    companyOverview: categorized.companyOverview.length > 0 ? categorized.companyOverview.join('\n\n') : undefined,
+    responsibilities: categorized.responsibilities.length > 0 ? categorized.responsibilities.join('\n\n') : undefined,
+    requirements: categorized.requirements.length > 0 ? categorized.requirements.join('\n\n') : undefined,
+    benefits: categorized.benefits.length > 0 ? categorized.benefits.join('\n\n') : undefined,
+  };
+}
+
+/**
  * Extracts job posting title, company name, and clean text description from page HTML.
  */
 export function parseJobHtml(html: string, url?: string): ParsedJob {
@@ -245,15 +348,18 @@ export function parseJobHtml(html: string, url?: string): ParsedJob {
     description = description.slice(0, 8000) + '\n\n[... truncated ...]';
   }
 
+  const sections = structureJobSections(description);
+
   return {
     title: title || undefined,
     company: company || undefined,
     description: description.trim(),
+    sections,
   };
 }
 
 /**
- * Formats parsed vacancy data into a coherent string suitable for LLM prompt and user textarea.
+ * Formats parsed vacancy data into a coherent, structured string suitable for LLM prompt and user textarea.
  */
 export function formatJobText(parsed: ParsedJob): string {
   const parts: string[] = [];
@@ -266,6 +372,30 @@ export function formatJobText(parsed: ParsedJob): string {
   if (parts.length > 0) {
     parts.push('\n---\n');
   }
-  parts.push(parsed.description);
-  return parts.join('\n').trim();
+
+  const sections = parsed.sections;
+  if (
+    sections &&
+    (sections.companyOverview || sections.responsibilities || sections.requirements || sections.benefits)
+  ) {
+    if (sections.companyOverview) {
+      parts.push(`### 🏢 About the Company\n${sections.companyOverview}`);
+    }
+    if (sections.roleOverview) {
+      parts.push(`### 💼 Role Overview & Goals\n${sections.roleOverview}`);
+    }
+    if (sections.responsibilities) {
+      parts.push(`### 📋 Responsibilities & Duties\n${sections.responsibilities}`);
+    }
+    if (sections.requirements) {
+      parts.push(`### 🛠️ Requirements & Qualifications\n${sections.requirements}`);
+    }
+    if (sections.benefits) {
+      parts.push(`### 🎁 Work Conditions & Benefits\n${sections.benefits}`);
+    }
+  } else {
+    parts.push(parsed.description);
+  }
+
+  return parts.join('\n\n').trim();
 }
