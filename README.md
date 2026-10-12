@@ -1,8 +1,14 @@
-# AI Interview Simulator
+# 🎙️ AI Interview Simulator
 
-An advanced, interactive AI-powered technical and behavioral interview simulator. The application combines agentic LLM workflows (LangGraph), real-time neural speech synthesis (Edge TTS via Cloudflare Functions), audio-driven phonetic lip-sync, and 3D avatars (Three.js/ReadyPlayerMe/VRM) to create a lifelike interviewing experience.
+> An advanced, interactive AI-powered technical and behavioral interview simulator combining agentic LangGraph workflows, real-time neural speech synthesis, audio-driven phonetic lip-sync, and 3D avatars.
 
-## Features
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.4.21-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
+[![React](https://img.shields.io/badge/React-19.3.0-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
+
+## ✨ Features
 - **Dynamic AI Interviewer:** Powered by LangGraph, the AI intelligently routes between interview stages (warm-up, technical deep-dive, behavioral, wrap-up).
 - **Multiple LLM Providers:** Support for OpenAI (GPT-4o-Mini), Anthropic (Claude 3 Haiku), Google Gemini (Gemini 3.8 Flash), and DeepSeek.
 - **Multiple Interview Modes:** Choose from HR Screening, Technical Deep Dive, System Design, Behavioral (STAR), or a Full Loop.
@@ -21,10 +27,16 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
 - **Resume Parsing:** Upload your CV (PDF), and the AI will extract your background and ask contextualized questions.
 - **Live Feedback & Assessment:** The AI continuously evaluates your responses, offering grammar corrections, vocabulary suggestions, and an "ideal" suggested answer.
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Node.js**: [Node.js](https://nodejs.org/) `>= 20.0.0` (tested on v24 / v26)
-- **AI Agent & LLM**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.21`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.17`) — Multi-agent state machine with dynamic interview routing
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.4.21-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
+[![React](https://img.shields.io/badge/React-19.3.0-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
+
+- **Runtime**: [Node.js](https://nodejs.org/) `>= 20.0.0` (tested on v24 / v26)
+- **Agent Workflow**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.21`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.17`)
 - **Frontend Core**: [React 19](https://react.dev/) (`^19.3.0`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`)
 
 ## Supported Languages & Voices
