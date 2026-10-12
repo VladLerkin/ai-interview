@@ -7,14 +7,14 @@ This document outlines the technical architecture, agentic AI workflow, phonetic
 ## 1. System Architecture
 
 The application is engineered as a high-performance single-page Progressive Web App (PWA) using React, Vite, Three.js, and Tailwind CSS. The system operates across three interconnected layers:
-1. **Agentic Conversation Flow** (`@langchain/langgraph` + multi-provider LLM routing)
+1. **Agentic Conversation Flow** (LangGraph + multi-provider LLM routing)
 2. **Real-Time Speech & Serverless Audio** (Cloudflare Pages Functions native Edge TTS + Web Speech API)
 3. **3D Interactive Avatar Engine** (Three.js, Oculus Visemes, Apple ARKit blendshapes, and procedural micro-animations)
 
 ### Core Technology Stack
-- **Runtime**: Node.js `18+` (tested on Node `24` / `26`)
-- **Agent Workflow**: `@langchain/langgraph` (`^1.4.18`), `@langchain/core` (`^1.2.14`)
-- **Frontend**: React 19 (`^19.2.8`), TypeScript 7 (`^7.0.2`), Vite 8 (`^8.3.0`)
+- **Runtime**: Node.js
+- **Agent Workflow**: LangGraph, LangChain Core
+- **Frontend**: React, TypeScript, Vite
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
