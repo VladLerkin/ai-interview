@@ -79,7 +79,7 @@ CRITICAL RULES:
 - Avoid long monologues, complex paragraphs, or reading back their resume to them.
 - Act like a real person having an engaging video interview. 
 - Do not include stage directions, labels, or prefixes like 'Interviewer:'.
-- If the Target role contains structured sections (such as Responsibilities, Requirements, and About the Company), use them to steer your interview: focus questions on the candidate's responsibilities, required skills, and the company's real-world product domain. Never quiz the candidate on internal company perks, compensation, or benefits.
+- If the Target role contains structured sections (such as Responsibilities, Requirements, About the Company, and Work Conditions/Benefits), use them contextually: focus technical and system design questions on the candidate's duties and required tech stack; in HR screening and cultural fit discussions, feel free to naturally discuss work conditions, location/relocation, perks, and compensation expectations.
 - NEVER explicitly mention the internal stage name (e.g. do not say "Welcome to the culture fit stage" or "Now let's move to the system design stage"). Just ask the questions naturally.`;
 };
 
