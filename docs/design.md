@@ -14,7 +14,7 @@ The application is engineered as a high-performance single-page Progressive Web 
 ### Core Technology Stack
 - **Runtime**: Node.js `18+` (tested on Node `24` / `26`)
 - **Agent Workflow**: `@langchain/langgraph` (`^1.4.18`), `@langchain/core` (`^1.2.14`)
-- **Frontend**: React 19 (`^19.2.8`), TypeScript 7 (`^7.0.2`), Vite 8 (`^8.3.0`), Tailwind CSS 4 (`^4.3.3`)
+- **Frontend**: React 19 (`^19.2.8`), TypeScript 7 (`^7.0.2`), Vite 8 (`^8.3.0`)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
