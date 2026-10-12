@@ -9,23 +9,15 @@
 [![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
 
 ## ✨ Features
-- **Dynamic AI Interviewer:** Powered by LangGraph, the AI intelligently routes between interview stages (warm-up, technical deep-dive, behavioral, wrap-up).
-- **Multiple LLM Providers:** Support for OpenAI (GPT-4o-Mini), Anthropic (Claude 3 Haiku), Google Gemini (Gemini 3.8 Flash), and DeepSeek.
-- **Multiple Interview Modes:** Choose from HR Screening, Technical Deep Dive, System Design, Behavioral (STAR), or a Full Loop.
-- **3D Interactive Avatars:** Supports VRM and GLB (MetaPerson/ARKit) models with procedural breathing, eye blinking, gaze tracking, lip sync, and emotional micro-expressions.
-- **Advanced Phonetic Lip-Sync:** 
-  - Dynamic vowel-weighted articulation with calibrated "O" and "U" lip rounding (`mouthPucker` / `mouthFunnel`).
-  - Organic upper lip mobility (`mouthUpperUp`, `mouthShrugUpper`).
-  - Full CJK prosody engine for Chinese and Japanese (3-phase syllabic attack/nucleus/coda decomposition, Hiragana/Katakana phonetic mapping, and CJK full-width punctuation pauses).
-- **Studio-Quality Neural Voices:** Powered by Microsoft Edge TTS via native Cloudflare Pages serverless functions with zero external latency or paid TTS dependencies.
-- **Comprehensive Multilingual Support (i18n):** Complete UI localization, system prompts, and native neural voices across 13 international languages and accents.
-- **Mobile-First Responsive UX (PWA):**
-  - Full-viewport mobile layout (`h-[100dvh]`) prioritizing avatar presence and conversation flow.
-  - Ergonomic answer input box with enlarged text (`16px`) and touch-friendly controls.
-  - Smart camera framing (`0.95` focal distance at eye level) to prevent polygon clipping and hair parting transparency.
-  - Distraction-free interview session: Suggested answers and live feedback are tucked neatly below the fold on mobile screens.
-- **Resume Parsing:** Upload your CV (PDF), and the AI will extract your background and ask contextualized questions.
-- **Live Feedback & Assessment:** The AI continuously evaluates your responses, offering grammar corrections, vocabulary suggestions, and an "ideal" suggested answer.
+
+- **Agentic Interview Workflow:** Powered by LangGraph, intelligently adapting questions and pacing across warm-up, technical deep-dive, behavioral, and wrap-up stages.
+- **Interactive 3D Avatar:** Expressive VRM and GLB models featuring procedural breathing, eye contact, blinking, and natural micro-expressions.
+- **Real-Time Voice & Lip-Sync:** Neural speech synthesis paired with audio-synchronized phonetic 3D facial articulation.
+- **Multiple Interview Tracks:** Tailored simulation tracks for HR Screening, Technical Deep-Dive, System Design, Behavioral (STAR), or a Full Loop.
+- **Resume-Driven Context:** Upload your CV (PDF) to ground the interview in your actual work experience and projects.
+- **Instant Assessment & Feedback:** Live constructive feedback on each answer, including grammar, clarity, vocabulary tips, and recommended phrasing.
+- **Multi-Provider & Multilingual:** Seamless integration with Google Gemini, OpenAI, Anthropic, or DeepSeek across 13 international languages.
+- **Installable PWA:** Fast, mobile-first responsive layout ready for practice anytime on desktop and mobile.
 
 ## Supported Languages & Voices
 
