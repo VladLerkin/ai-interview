@@ -25,19 +25,22 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
   const speech = snapshot.nextInterviewerSpeech;
   const inputLocked = isEvaluating || tts.isSpeaking;
 
-  const handleEnd = useCallback(() => {
-    tts.stop();
-    stt.stop();
-    onReset();
-  }, [tts, stt, onReset]);
+  const { stop: stopSpeaking } = tts;
+  const { stop: stopListening } = stt;
 
-  // Clean up speech and microphone if the room is exited or unmounted
+  const handleEnd = useCallback(() => {
+    stopSpeaking();
+    stopListening();
+    onReset();
+  }, [stopSpeaking, stopListening, onReset]);
+
+  // Clean up speech and microphone only when the room is exited or unmounted
   useEffect(() => {
     return () => {
-      tts.stop();
-      stt.stop();
+      stopSpeaking();
+      stopListening();
     };
-  }, [tts, stt]);
+  }, [stopSpeaking, stopListening]);
 
   const handleSubmit = async () => {
     if (stt.isListening) stt.stop();
