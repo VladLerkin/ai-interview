@@ -23,7 +23,7 @@ An advanced, interactive AI-powered technical and behavioral interview simulator
 
 ## Tech Stack
 
-- **Node.js**: `18+` (tested with Node `24` / `26`)
+- **Node.js**: [Node.js](https://nodejs.org/) `>= 20.0.0` (tested on v24 / v26)
 - **AI Agent & LLM**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.21`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.17`) — Multi-agent state machine with dynamic interview routing
 - **Frontend Core**: [React 19](https://react.dev/) (`^19.3.0`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`)
 
@@ -50,7 +50,7 @@ The simulator provides full UI localization, tailored LLM prompt instructions, a
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js >= 20.0.0
 - API Key from Google Gemini, OpenAI, Anthropic, or DeepSeek.
 
 ### Installation
