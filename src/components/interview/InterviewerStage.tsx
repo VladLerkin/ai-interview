@@ -48,11 +48,10 @@ export const InterviewerStage: React.FC<InterviewerStageProps> = ({
                 <div className="flex gap-1.5 md:gap-2 shrink-0">
                   <button
                     onClick={onReplay}
-                    disabled={isSpeaking}
-                    className="p-1.5 md:p-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                    className="p-1.5 md:p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                     title="Replay Audio"
                   >
-                    <Volume2 className="w-4 h-4 md:w-5 md:h-5" />
+                    <Volume2 className={`w-4 h-4 md:w-5 md:h-5 ${isSpeaking ? 'text-primary-400 animate-pulse' : ''}`} />
                   </button>
                 </div>
               )}

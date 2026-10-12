@@ -85,6 +85,7 @@ export async function playEdgeSpeech(
 
     audio.onended = () => {
       globalSpeechVisemeTracker.reset();
+      globalAudioAnalyser.disconnect();
       if (currentBlobUrl) {
         URL.revokeObjectURL(currentBlobUrl);
         currentBlobUrl = null;
@@ -97,6 +98,7 @@ export async function playEdgeSpeech(
 
     audio.onerror = () => {
       globalSpeechVisemeTracker.reset();
+      globalAudioAnalyser.disconnect();
       if (currentBlobUrl) {
         URL.revokeObjectURL(currentBlobUrl);
         currentBlobUrl = null;
@@ -113,6 +115,7 @@ export async function playEdgeSpeech(
     return true;
   } catch (err: unknown) {
     globalSpeechVisemeTracker.reset();
+    globalAudioAnalyser.disconnect();
     if (abortController.signal.aborted || requestId !== currentRequestId) {
       if (currentBlobUrl) {
         URL.revokeObjectURL(currentBlobUrl);
@@ -144,6 +147,7 @@ export function stopEdgeSpeech(): void {
     currentAbortController = null;
   }
   globalSpeechVisemeTracker.reset();
+  globalAudioAnalyser.disconnect();
   if (currentAudio) {
     try {
       currentAudio.pause();

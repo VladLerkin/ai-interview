@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { computeProsody, pickVoice, sanitizeForSpeech, splitSentences } from '../lib/speech';
-import { globalSpeechVisemeTracker, playEdgeSpeech, stopAllSpeech } from '../lib/audio';
+import { globalAudioAnalyser, globalSpeechVisemeTracker, playEdgeSpeech, stopAllSpeech } from '../lib/audio';
 import type { Language } from '../types/interview';
 
 /** How long to wait for `voiceschanged` before speaking with the default voice. */
@@ -38,6 +38,9 @@ export const useSpeechSynthesis = (language: Language) => {
         voiceTimeoutRef.current = undefined;
       }
 
+      // Synchronously resume AudioContext within any active user gesture
+      globalAudioAnalyser.resume().catch(() => {});
+
       const speechText = sanitizeForSpeech(text);
 
       // 1. Try Microsoft Edge Neural TTS with real-time Web Audio FFT analysis
@@ -58,7 +61,6 @@ export const useSpeechSynthesis = (language: Language) => {
       }
 
       if (success) {
-        setIsSpeaking(true);
         return;
       }
 

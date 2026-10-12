@@ -3,13 +3,33 @@ import type { InterviewConfig } from './types/interview';
 import { SetupModal } from './components/SetupModal';
 import { InterviewRoom } from './components/interview/InterviewRoom';
 import { getStoredData, setStoredData, deleteStoredData } from './lib/store';
-import { stopAllSpeech } from './lib/audio';
+import { stopAllSpeech, globalAudioAnalyser } from './lib/audio';
 import { Download } from 'lucide-react';
 
 function App() {
   const [config, setConfig] = useState<InterviewConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<any>((window as any).deferredPrompt);
+
+  // Global listener to unlock Web Audio API & SpeechSynthesis on any user interaction
+  useEffect(() => {
+    const unlock = () => {
+      globalAudioAnalyser.resume().catch(() => {});
+      try {
+        window.speechSynthesis?.resume();
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener('click', unlock, { passive: true });
+    window.addEventListener('touchstart', unlock, { passive: true });
+    window.addEventListener('keydown', unlock, { passive: true });
+    return () => {
+      window.removeEventListener('click', unlock);
+      window.removeEventListener('touchstart', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -39,7 +59,13 @@ function App() {
   }, []);
 
   const handleStart = async (c: InterviewConfig) => {
-    // Unlock Audio Context and TTS by speaking a silent utterance
+    // Unlock Audio Context and TTS
+    globalAudioAnalyser.resume().catch(() => {});
+    try {
+      window.speechSynthesis?.resume();
+    } catch {
+      /* ignore */
+    }
     const utterance = new SpeechSynthesisUtterance('');
     window.speechSynthesis.speak(utterance);
     

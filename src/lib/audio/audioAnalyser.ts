@@ -18,6 +18,11 @@ export class AudioAnalyser {
       this.analyser = this.ctx.createAnalyser();
       this.analyser.fftSize = 512;
       this.analyser.smoothingTimeConstant = 0.65;
+      try {
+        this.analyser.connect(this.ctx.destination);
+      } catch {
+        /* ignore */
+      }
       this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
     }
   }
@@ -25,17 +30,25 @@ export class AudioAnalyser {
   /** Connects an HTMLAudioElement to the Web Audio pipeline */
   connectAudioElement(element: HTMLAudioElement): void {
     if (!this.ctx || !this.analyser) return;
-    this.resume();
+
+    // Only route audio through Web Audio API if the context is actually RUNNING.
+    // In Chrome/Safari, calling createMediaElementSource while AudioContext is suspended
+    // intercepts the native audio output and causes complete silence!
+    if (this.ctx.state !== 'running') {
+      this.resume().catch(() => {});
+      this.disconnect();
+      return;
+    }
 
     try {
       this.sourceNode?.disconnect();
       const node = this.ctx.createMediaElementSource(element);
       node.connect(this.analyser);
-      this.analyser.connect(this.ctx.destination);
       this.sourceNode = node;
       this.isConnected = true;
     } catch (e) {
-      console.warn('AudioAnalyser connectAudioElement warning:', e);
+      console.warn('[AudioAnalyser] connectAudioElement warning:', e);
+      this.isConnected = false;
     }
   }
 
@@ -55,6 +68,11 @@ export class AudioAnalyser {
         await this.ctx.resume();
       } catch { /* ignore */ }
     }
+  }
+
+  /** Returns underlying AudioContext if available */
+  get context(): AudioContext | null {
+    return this.ctx;
   }
 
   /** Returns true if an active audio source is feeding into the analyser */
