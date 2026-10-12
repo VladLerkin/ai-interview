@@ -1,7 +1,7 @@
-import { type ParsedJob, formatJobText } from './jobParserCore';
+import { type ParsedJob, formatJobText, parseRawJobText } from './jobParserCore';
 
 export type { ParsedJob };
-export { formatJobText };
+export { formatJobText, parseRawJobText };
 
 export interface ParseJobResponse {
   success: boolean;

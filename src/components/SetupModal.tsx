@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData, setStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, ChevronRight, AlertCircle, X, Link2, Loader2, CheckCircle2, Download } from 'lucide-react';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, ChevronRight, AlertCircle, X, Link2, Loader2, CheckCircle2, Download, Sparkles } from 'lucide-react';
 import type { InterviewType, InterviewConfig, Language, Provider } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
 import { DEFAULT_PROVIDER, PROVIDERS } from '../config/providers';
 import { getTranslation } from '../lib/i18n';
-import { fetchJobFromUrl, formatJobText } from '../lib/jobParser';
+import { fetchJobFromUrl, formatJobText, parseRawJobText, type ParsedJob } from '../lib/jobParser';
 import { PREDEFINED_AVATARS, CUSTOM_AVATAR_ID, REMOTE_GLB_AVATAR_URL, DEFAULT_AVATAR_ID } from '../config/avatars';
 import { INTERVIEW_TYPES, getInterviewTypeOption } from '../config/interviewTypes';
 import { testLlmConnection, type LlmTestResult } from '../agent/testLlm';
+import { reformatJobDescriptionWithAi } from '../agent/jobReformatter';
 
 interface SetupModalProps {
   onStart: (config: InterviewConfig) => void;
@@ -25,6 +26,8 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [isImportingJob, setIsImportingJob] = useState(false);
   const [jobImportStatus, setJobImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [jobDesc, setJobDesc] = useState('');
+  const [isFormattingJob, setIsFormattingJob] = useState(false);
+  const [jobFormatStatus, setJobFormatStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [company, setCompany] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [fileName, setFileName] = useState('');
@@ -103,6 +106,57 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       });
     } finally {
       setIsImportingJob(false);
+    }
+  };
+
+  const handleFormatJobDesc = async () => {
+    const trimmed = jobDesc.trim();
+    if (!trimmed) {
+      setJobFormatStatus({ type: 'error', message: t('formatJobEmpty') });
+      jobDescRef.current?.focus();
+      return;
+    }
+
+    setIsFormattingJob(true);
+    setJobFormatStatus(null);
+
+    try {
+      let parsed: ParsedJob;
+      let usedAi = false;
+
+      if (apiKey.trim()) {
+        try {
+          parsed = await reformatJobDescriptionWithAi(trimmed, provider, apiKey.trim());
+          usedAi = true;
+        } catch (aiErr) {
+          console.warn('AI reformat error, falling back to rule-based parser:', aiErr);
+          parsed = parseRawJobText(trimmed);
+        }
+      } else {
+        parsed = parseRawJobText(trimmed);
+      }
+
+      const formatted = formatJobText(parsed);
+      setJobDesc(formatted);
+
+      if (parsed.company && !company.trim()) {
+        setCompany(parsed.company);
+      }
+
+      setErrors((prev) => ({ ...prev, jobDesc: undefined }));
+      setErrorMessage(null);
+      setJobFormatStatus({
+        type: 'success',
+        message: usedAi ? t('formatJobSuccess') : t('formatJobRuleSuccess'),
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t('formatJobError');
+      setJobFormatStatus({
+        type: 'error',
+        message: msg,
+      });
+    } finally {
+      setIsFormattingJob(false);
     }
   };
 
@@ -470,9 +524,34 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-sm font-medium text-gray-400">{t('jobDesc')}</label>
-                    <span className="text-xs text-gray-500">Editable before start</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-sm font-medium text-gray-400 flex items-center gap-1.5">
+                      <Briefcase className="w-4 h-4 text-primary-400" /> {t('jobDesc')}
+                    </label>
+                    <button
+                      type="button"
+                      id="format-job-button"
+                      onClick={handleFormatJobDesc}
+                      disabled={isFormattingJob || !jobDesc.trim()}
+                      className={`text-xs px-2.5 py-1 rounded-md font-medium transition-all flex items-center gap-1.5 border shadow-xs ${
+                        isFormattingJob || !jobDesc.trim()
+                          ? 'bg-dark-800 text-gray-600 border-gray-800 cursor-not-allowed opacity-60'
+                          : 'bg-primary-950/60 text-primary-300 border-primary-500/30 hover:bg-primary-900/80 hover:text-white hover:border-primary-400 active:scale-95 cursor-pointer'
+                      }`}
+                      title={apiKey.trim() ? t('formatJobAiTooltip') : t('formatJobRulesTooltip')}
+                    >
+                      {isFormattingJob ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-primary-400" />
+                          <span>{t('formattingJob')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5 text-primary-400" />
+                          <span>{t('formatJob')}</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                   <textarea
                     ref={jobDescRef}
@@ -484,12 +563,27 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     value={jobDesc}
                     onChange={(e) => {
                       setJobDesc(e.target.value);
+                      if (jobFormatStatus) setJobFormatStatus(null);
                       if (errors.jobDesc) {
                         setErrors((prev) => ({ ...prev, jobDesc: undefined }));
                         setErrorMessage(null);
                       }
                     }}
                   />
+                  {jobFormatStatus && (
+                    <div
+                      className={`text-xs mt-1.5 flex items-center gap-1.5 transition-all ${
+                        jobFormatStatus.type === 'success' ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {jobFormatStatus.type === 'success' ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      )}
+                      <span>{jobFormatStatus.message}</span>
+                    </div>
+                  )}
                   {errors.jobDesc && (
                     <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
                       <AlertCircle className="w-3.5 h-3.5" /> {errors.jobDesc}

@@ -136,23 +136,23 @@ export function htmlToText(html: string): string {
   return cleanApplicationFormText(result);
 }
 
+export const companyHeadingRegex =
+  /(?:about\s+(?:the\s+)?(?:company|us|[a-z0-9_-]+)|who\s+we\s+are|company\s+overview|our\s+mission|о\s+компании|о\s+нас|о\s+команде|кто\s+мы|наша\s+миссия)/i;
+export const respHeadingRegex =
+  /(?:what\s+you(?:['’]ll|\s+will)\s+do|responsibilities|duties|tasks|day\s+to\s+day|key\s+responsibilities|your\s+role|обязанности|чем\s+предстоит\s+заниматься|задачи|что\s+предстоит\s+делать|зона\s+ответственности|ваша\s+роль)/i;
+export const reqHeadingRegex =
+  /(?:what\s+you(?:['’]ll|\s+will)\s+(?:need|bring)|requirements|qualifications|skills|tech\s+stack|technical\s+skills|what\s+we(?:['’]re|\s+are)\s+looking\s+for|we\s+expect|требования|что\s+мы\s+ждем|наши\s+ожидания|стек|навыки|требуемый\s+опыт|ожидания\s+от\s+кандидата)/i;
+export const benHeadingRegex =
+  /(?:why\s+join|benefits|perks|what\s+we\s+offer|compensation|we\s+offer|work\s+conditions|условия|что\s+мы\s+предлагаем|плюшки|бонусы|бенефиты|условия\s+работы|мы\s+предлагаем)/i;
+export const roleHeadingRegex =
+  /(?:role\s+overview|job\s+summary|about\s+the\s+role|what\s+success\s+looks\s+like|overview|position\s+summary|описание\s+вакансии|описание\s+роли)/i;
+
 /**
  * Automatically detects sections (Company overview, Role, Duties, Tech stack requirements, Benefits)
  * and groups the text into structured semantic blocks.
  */
 export function structureJobSections(rawText: string): JobSections {
   const blocks = rawText.split(/\n\n+/).map((b) => b.trim()).filter(Boolean);
-
-  const companyHeading =
-    /(?:about\s+(?:the\s+)?(?:company|us|[a-z0-9_-]+)|who\s+we\s+are|company\s+overview|our\s+mission|о\s+компании|о\s+нас|о\s+команде|кто\s+мы|наша\s+миссия)/i;
-  const respHeading =
-    /(?:what\s+you(?:['’]ll|\s+will)\s+do|responsibilities|duties|tasks|day\s+to\s+day|key\s+responsibilities|your\s+role|обязанности|чем\s+предстоит\s+заниматься|задачи|что\s+предстоит\s+делать|зона\s+ответственности|ваша\s+роль)/i;
-  const reqHeading =
-    /(?:what\s+you(?:['’]ll|\s+will)\s+(?:need|bring)|requirements|qualifications|skills|tech\s+stack|technical\s+skills|what\s+we(?:['’]re|\s+are)\s+looking\s+for|we\s+expect|требования|что\s+мы\s+ждем|наши\s+ожидания|стек|навыки|требуемый\s+опыт|ожидания\s+от\s+кандидата)/i;
-  const benHeading =
-    /(?:why\s+join|benefits|perks|what\s+we\s+offer|compensation|we\s+offer|work\s+conditions|условия|что\s+мы\s+предлагаем|плюшки|бонусы|бенефиты|условия\s+работы|мы\s+предлагаем)/i;
-  const roleHeading =
-    /(?:role\s+overview|job\s+summary|about\s+the\s+role|what\s+success\s+looks\s+like|overview|position\s+summary|описание\s+вакансии|описание\s+роли)/i;
 
   const isBoilerplate = (text: string) => {
     return (
@@ -175,35 +175,45 @@ export function structureJobSections(rawText: string): JobSections {
   for (const block of blocks) {
     if (isBoilerplate(block)) continue;
 
-    const firstLine = block.split('\n')[0].replace(/[:?#]+$/, '').trim();
-    const isShortHeading = firstLine.length <= 60 && !firstLine.startsWith('•');
+    const rawFirstLine = block.split('\n')[0].trim();
+    const cleanHeading = rawFirstLine
+      .replace(/^[#*_\s\-–—\p{Extended_Pictographic}]+/u, '')
+      .replace(/[:?#*_\s]+$/, '')
+      .trim();
+
+    const isShortHeading =
+      cleanHeading.length > 0 &&
+      cleanHeading.length <= 60 &&
+      !rawFirstLine.startsWith('•') &&
+      !rawFirstLine.startsWith('- ') &&
+      !rawFirstLine.startsWith('* ');
 
     if (isShortHeading) {
-      if (companyHeading.test(firstLine)) {
+      if (companyHeadingRegex.test(cleanHeading)) {
         currentCategory = 'companyOverview';
         matchedAnySection = true;
         const rest = block.split('\n').slice(1).join('\n').trim();
         if (rest) categorized[currentCategory].push(rest);
         continue;
-      } else if (respHeading.test(firstLine)) {
+      } else if (respHeadingRegex.test(cleanHeading)) {
         currentCategory = 'responsibilities';
         matchedAnySection = true;
         const rest = block.split('\n').slice(1).join('\n').trim();
         if (rest) categorized[currentCategory].push(rest);
         continue;
-      } else if (reqHeading.test(firstLine)) {
+      } else if (reqHeadingRegex.test(cleanHeading)) {
         currentCategory = 'requirements';
         matchedAnySection = true;
         const rest = block.split('\n').slice(1).join('\n').trim();
         if (rest) categorized[currentCategory].push(rest);
         continue;
-      } else if (benHeading.test(firstLine)) {
+      } else if (benHeadingRegex.test(cleanHeading)) {
         currentCategory = 'benefits';
         matchedAnySection = true;
         const rest = block.split('\n').slice(1).join('\n').trim();
         if (rest) categorized[currentCategory].push(rest);
         continue;
-      } else if (roleHeading.test(firstLine)) {
+      } else if (roleHeadingRegex.test(cleanHeading)) {
         currentCategory = 'roleOverview';
         matchedAnySection = true;
         const rest = block.split('\n').slice(1).join('\n').trim();
@@ -227,6 +237,110 @@ export function structureJobSections(rawText: string): JobSections {
     responsibilities: categorized.responsibilities.length > 0 ? categorized.responsibilities.join('\n\n') : undefined,
     requirements: categorized.requirements.length > 0 ? categorized.requirements.join('\n\n') : undefined,
     benefits: categorized.benefits.length > 0 ? categorized.benefits.join('\n\n') : undefined,
+  };
+}
+
+/**
+ * Parses user-pasted job description text (which may contain raw copy-paste, HTML, or markdown),
+ * extracts potential title/company, and normalizes into structured JobSections.
+ */
+export function parseRawJobText(rawText: string): ParsedJob {
+  let text = rawText.trim();
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    text = htmlToText(text);
+  } else {
+    text = decodeHtmlEntities(text);
+  }
+
+  let title: string | undefined;
+  let company: string | undefined;
+
+  // Check for Target Role / Company headers at top
+  const titleMatch = text.match(/^(?:Target\s+Role|Role|Position|Title|Должность|Позиция|Вакансия)\s*:\s*([^\n]+)/im);
+  if (titleMatch) {
+    title = cleanText(titleMatch[1]);
+  }
+
+  const companyMatch = text.match(/^(?:Company|Компания|Организация)\s*:\s*([^\n]+)/im);
+  if (companyMatch) {
+    company = cleanText(companyMatch[1]);
+  }
+
+  // Pre-normalize text so single-line headings are separated by double newlines
+  const lines = text.split('\n');
+  const normalized: string[] = [];
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    const candidate = trimmedLine
+      .replace(/^[#*_\s\-–—\p{Extended_Pictographic}]+/u, '')
+      .replace(/[:?#*_\s]+$/, '')
+      .trim();
+
+    if (
+      candidate.length > 0 &&
+      candidate.length <= 60 &&
+      !trimmedLine.startsWith('•') &&
+      !trimmedLine.startsWith('- ') &&
+      !trimmedLine.startsWith('* ') &&
+      (companyHeadingRegex.test(candidate) ||
+        respHeadingRegex.test(candidate) ||
+        reqHeadingRegex.test(candidate) ||
+        benHeadingRegex.test(candidate) ||
+        roleHeadingRegex.test(candidate))
+    ) {
+      normalized.push('');
+      normalized.push(trimmedLine);
+      normalized.push('');
+    } else {
+      normalized.push(line);
+    }
+  }
+
+  const normalizedText = normalized.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  // If title was not explicitly labeled, check if the first non-empty line looks like a title
+  if (!title) {
+    const firstLine = lines.find((l) => l.trim().length > 0)?.trim();
+    if (
+      firstLine &&
+      firstLine.length <= 60 &&
+      !firstLine.includes(':') &&
+      !firstLine.startsWith('•') &&
+      !firstLine.startsWith('- ') &&
+      !firstLine.startsWith('* ')
+    ) {
+      const candidate = firstLine
+        .replace(/^[#*_\s\-–—\p{Extended_Pictographic}]+/u, '')
+        .trim();
+      if (
+        !companyHeadingRegex.test(candidate) &&
+        !respHeadingRegex.test(candidate) &&
+        !reqHeadingRegex.test(candidate) &&
+        !benHeadingRegex.test(candidate) &&
+        !roleHeadingRegex.test(candidate)
+      ) {
+        title = candidate;
+      }
+    }
+  }
+
+  const sections = structureJobSections(normalizedText);
+
+  // If roleOverview only echoed the title or company metadata line, clean it up
+  if (sections.roleOverview) {
+    const cleanedRole = sections.roleOverview
+      .replace(/^(?:Target\s+Role|Role|Position|Title|Должность|Позиция|Вакансия)\s*:\s*[^\n]+/gim, '')
+      .replace(/^(?:Company|Компания|Организация)\s*:\s*[^\n]+/gim, '')
+      .trim();
+    sections.roleOverview = cleanedRole || undefined;
+  }
+
+  return {
+    title,
+    company,
+    description: normalizedText,
+    sections,
   };
 }
 
@@ -370,7 +484,7 @@ export function formatJobText(parsed: ParsedJob): string {
     parts.push(`Company: ${parsed.company}`);
   }
   if (parts.length > 0) {
-    parts.push('\n---\n');
+    parts.push('---');
   }
 
   const sections = parsed.sections;
