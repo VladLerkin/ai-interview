@@ -20,6 +20,7 @@ export interface InterviewConfig {
   apiKey: string;
   resumeText: string;
   jobDescription: string;
+  jobUrl?: string;
   companyInfo: string;
   interviewType: InterviewType;
   language: Language;

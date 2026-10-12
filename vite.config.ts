@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { edgeTtsPlugin } from './vite-plugin-edge-tts.ts';
+import { jobParserPlugin } from './vite-plugin-job-parser.ts';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,6 +13,7 @@ export default defineConfig({
   },
   plugins: [
     edgeTtsPlugin(),
+    jobParserPlugin(),
     react(),
     tailwindcss(),
     VitePWA({

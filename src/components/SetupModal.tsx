@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData, setStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, AlertCircle, X } from 'lucide-react';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, AlertCircle, X, Link2, Loader2, CheckCircle2, Download } from 'lucide-react';
 import type { InterviewType, InterviewConfig, Language } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
+import { fetchJobFromUrl, formatJobText } from '../lib/jobParser';
 import { PREDEFINED_AVATARS, CUSTOM_AVATAR_ID, REMOTE_GLB_AVATAR_URL, DEFAULT_AVATAR_ID } from '../config/avatars';
 
 export type { InterviewType, InterviewConfig };
@@ -78,6 +79,9 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [language, setLanguage] = useState<Language>('en-GB');
   const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'deepseek'>('gemini');
   const [apiKey, setApiKey] = useState(localStorage.getItem('interview_apikey') || '');
+  const [jobUrl, setJobUrl] = useState('');
+  const [isImportingJob, setIsImportingJob] = useState(false);
+  const [jobImportStatus, setJobImportStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [jobDesc, setJobDesc] = useState('');
   const [company, setCompany] = useState('');
   const [resumeText, setResumeText] = useState('');
@@ -101,6 +105,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       if (data) {
         if (data.provider) setProvider(data.provider);
         if (data.apiKey) setApiKey(data.apiKey);
+        if (data.jobUrl) setJobUrl(data.jobUrl);
         if (data.jobDescription) setJobDesc(data.jobDescription);
         if (data.companyInfo) setCompany(data.companyInfo);
         if (data.interviewType) setInterviewType(data.interviewType);
@@ -112,6 +117,38 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       }
     });
   }, []);
+
+  const handleImportJob = async () => {
+    const trimmed = jobUrl.trim();
+    if (!trimmed) {
+      setJobImportStatus({ type: 'error', message: t('jobUrlPlaceholder') });
+      return;
+    }
+    setIsImportingJob(true);
+    setJobImportStatus(null);
+    try {
+      const parsed = await fetchJobFromUrl(trimmed);
+      const formatted = formatJobText(parsed);
+      setJobDesc(formatted);
+      if (parsed.company && !company.trim()) {
+        setCompany(parsed.company);
+      }
+      setErrors((prev) => ({ ...prev, jobDesc: undefined }));
+      setErrorMessage(null);
+      setJobImportStatus({
+        type: 'success',
+        message: t('importJobSuccess'),
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t('importJobError');
+      setJobImportStatus({
+        type: 'error',
+        message: msg,
+      });
+    } finally {
+      setIsImportingJob(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -187,6 +224,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
       apiKey,
       resumeText,
       jobDescription: jobDesc,
+      jobUrl: jobUrl.trim() || undefined,
       companyInfo: company,
       interviewType,
       language,
@@ -362,6 +400,73 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                   <Briefcase className="w-5 h-5 text-primary-500" /> Interview Context
                 </h2>
 
+                {/* Vacancy URL Import */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-gray-400 flex items-center gap-1.5">
+                      <Link2 className="w-4 h-4 text-primary-400" /> {t('jobUrl')}
+                    </label>
+                    <span className="text-xs text-gray-500">Auto-import</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Link2 className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+                      <input
+                        type="url"
+                        className="w-full bg-dark-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:ring-2 focus:ring-primary-500 outline-none transition-all text-sm"
+                        placeholder={t('jobUrlPlaceholder')}
+                        value={jobUrl}
+                        onChange={(e) => {
+                          setJobUrl(e.target.value);
+                          if (jobImportStatus) setJobImportStatus(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleImportJob();
+                          }
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleImportJob}
+                      disabled={isImportingJob || !jobUrl.trim()}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap shadow-sm ${
+                        isImportingJob || !jobUrl.trim()
+                          ? 'bg-gray-800 text-gray-500 border border-gray-700 cursor-not-allowed'
+                          : 'bg-primary-600 hover:bg-primary-500 text-white hover:shadow-primary-600/25 active:scale-95 cursor-pointer'
+                      }`}
+                    >
+                      {isImportingJob ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span>{t('importingJob')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4" />
+                          <span>{t('importJob')}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {jobImportStatus && (
+                    <div
+                      className={`text-xs mt-1.5 flex items-center gap-1.5 transition-all ${
+                        jobImportStatus.type === 'success' ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {jobImportStatus.type === 'success' ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      )}
+                      <span>{jobImportStatus.message}</span>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">{t('companyInfo')}</label>
                   <div className="relative">
@@ -377,11 +482,14 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">{t('jobDesc')}</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-gray-400">{t('jobDesc')}</label>
+                    <span className="text-xs text-gray-500">Editable before start</span>
+                  </div>
                   <textarea
                     ref={jobDescRef}
-                    rows={2}
-                    className={`w-full bg-dark-800 border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-none ${
+                    rows={4}
+                    className={`w-full bg-dark-800 border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-y ${
                       errors.jobDesc ? 'border-red-500 ring-2 ring-red-500/40' : 'border-gray-700'
                     }`}
                     placeholder={t('jobDescPlaceholder')}
