@@ -7,6 +7,7 @@ import { LANGUAGES } from '../config/languages';
 import { getTranslation } from '../lib/i18n';
 import { fetchJobFromUrl, formatJobText } from '../lib/jobParser';
 import { PREDEFINED_AVATARS, CUSTOM_AVATAR_ID, REMOTE_GLB_AVATAR_URL, DEFAULT_AVATAR_ID } from '../config/avatars';
+import { testLlmConnection, type LlmTestResult } from '../agent/testLlm';
 
 export type { InterviewType, InterviewConfig };
 
@@ -92,6 +93,20 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [avatarFileName, setAvatarFileName] = useState('');
   const [errors, setErrors] = useState<{ apiKey?: string; jobDesc?: string; resume?: string }>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isTestingLlm, setIsTestingLlm] = useState(false);
+  const [llmTestResult, setLlmTestResult] = useState<LlmTestResult | null>(null);
+
+  const handleTestLlm = async () => {
+    if (!apiKey.trim()) {
+      setLlmTestResult({ ok: false, model: '', message: getTranslation(language, 'apiKeyRequired'), latencyMs: 0 });
+      apiKeyRef.current?.focus();
+      return;
+    }
+    setIsTestingLlm(true);
+    setLlmTestResult(null);
+    setLlmTestResult(await testLlmConnection(provider, apiKey.trim()));
+    setIsTestingLlm(false);
+  };
 
   const resumeRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -355,7 +370,10 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                   <select
                     className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     value={provider}
-                    onChange={(e) => setProvider(e.target.value as any)}
+                    onChange={(e) => {
+                      setProvider(e.target.value as any);
+                      setLlmTestResult(null);
+                    }}
                   >
                     <option value="gemini">Google Gemini (Gemini 3.8 Flash)</option>
                     <option value="openai">OpenAI (GPT-4o-Mini)</option>
@@ -378,6 +396,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     value={apiKey}
                     onChange={(e) => {
                       setApiKey(e.target.value);
+                      setLlmTestResult(null);
                       if (errors.apiKey) {
                         setErrors((prev) => ({ ...prev, apiKey: undefined }));
                         setErrorMessage(null);
@@ -390,6 +409,33 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     </p>
                   ) : (
                     <p className="text-xs text-gray-500 mt-1">Stored locally in your browser.</p>
+                  )}
+
+                  <button
+                    type="button"
+                    id="test-llm-button"
+                    onClick={handleTestLlm}
+                    disabled={isTestingLlm}
+                    className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-700 bg-dark-800 text-sm font-medium text-gray-200 hover:border-primary-500 hover:text-white transition-colors disabled:opacity-60"
+                  >
+                    {isTestingLlm ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-primary-400" />}
+                    {isTestingLlm ? 'Testing...' : 'Test LLM connection'}
+                  </button>
+                  {llmTestResult && (
+                    <p
+                      className={`text-xs mt-2 flex items-start gap-1 break-words ${llmTestResult.ok ? 'text-green-400' : 'text-red-400'}`}
+                    >
+                      {llmTestResult.ok ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      )}
+                      <span>
+                        {llmTestResult.ok
+                          ? `OK — ${llmTestResult.model} replied "${llmTestResult.message}" in ${llmTestResult.latencyMs} ms`
+                          : `${llmTestResult.model ? `${llmTestResult.model}: ` : ''}${llmTestResult.message}`}
+                      </span>
+                    </p>
                   )}
                 </div>
               </div>

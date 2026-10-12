@@ -123,6 +123,10 @@ export const createInterviewAgent = (provider: Provider, apiKey: string, languag
 
     const llm = createChatModel(provider, apiKey, INTERVIEWER_TEMPERATURE);
     const response = await llm.invoke(messages);
+    if (!response.text?.trim()) {
+      console.error('LLM returned an empty reply', response);
+      throw new Error('The model returned an empty response (possibly blocked by safety filters).');
+    }
     return { nextInterviewerSpeech: response.text };
   };
 

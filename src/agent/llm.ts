@@ -11,6 +11,8 @@ import type { Provider } from '../types/interview';
  */
 export const createChatModel = (provider: Provider, apiKey: string, temperature: number): BaseChatModel => {
   const { model, baseURL } = getProvider(provider);
+  // Fail fast instead of silently retrying for minutes (UI would stay on "Preparing interview...").
+  const maxRetries = 1;
 
   switch (provider) {
     case 'openai':
@@ -19,6 +21,7 @@ export const createChatModel = (provider: Provider, apiKey: string, temperature:
         apiKey,
         model,
         temperature,
+        maxRetries,
         configuration: { baseURL, dangerouslyAllowBrowser: true },
       });
     case 'anthropic':
@@ -26,9 +29,10 @@ export const createChatModel = (provider: Provider, apiKey: string, temperature:
         apiKey,
         model,
         temperature,
+        maxRetries,
         clientOptions: { dangerouslyAllowBrowser: true },
       });
     case 'gemini':
-      return new ChatGoogleGenerativeAI({ apiKey, model, temperature });
+      return new ChatGoogleGenerativeAI({ apiKey, model, temperature, maxRetries });
   }
 };
