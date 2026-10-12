@@ -88,7 +88,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     }
 
     const html = await fetchPageHtml(url);
-    const parsed: ParsedJob = parseJobHtml(html);
+    const parsed: ParsedJob = parseJobHtml(html, url);
 
     if (!parsed.description) {
       return new Response(

@@ -37,14 +37,73 @@ export function cleanText(text: string): string {
   return decodeHtmlEntities(text.replace(/<[^>]+>/g, ' ').replace(/[ \t]+/g, ' ').trim());
 }
 
-export function htmlToText(html: string): string {
-  let text = html
-    // Remove unwanted tags and their inner content
+/**
+ * Extracts the inner content of an HTML element matching the given tag name,
+ * correctly handling arbitrarily nested tags of the same type.
+ */
+export function extractBalancedElement(html: string, startIndex: number, tagName: string): string | null {
+  const firstClose = html.indexOf('>', startIndex);
+  if (firstClose === -1) return null;
+
+  const contentStart = firstClose + 1;
+  let depth = 1;
+  const tagLower = tagName.toLowerCase();
+
+  const tagRegex = new RegExp(`</?${tagLower}(?:[\\s>/]|$)`, 'gi');
+  tagRegex.lastIndex = contentStart;
+
+  let match: RegExpExecArray | null;
+  while ((match = tagRegex.exec(html)) !== null) {
+    const matchedText = match[0].toLowerCase();
+    if (matchedText.startsWith(`</${tagLower}`)) {
+      depth--;
+      if (depth === 0) {
+        return html.slice(contentStart, match.index);
+      }
+    } else if (matchedText.startsWith(`<${tagLower}`)) {
+      const closingBracket = html.indexOf('>', match.index);
+      if (closingBracket !== -1 && html[closingBracket - 1] === '/') {
+        tagRegex.lastIndex = closingBracket + 1;
+        continue;
+      }
+      depth++;
+    }
+  }
+  return null;
+}
+
+/**
+ * Strips script tags, styles, SVG, noscripts, and especially forms/application sections.
+ */
+export function stripUnwantedHtml(html: string): string {
+  return html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<svg[\s\S]*?<\/svg>/gi, '')
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
-    // Replace structure tags with newlines
+    .replace(/<form[\s\S]*?<\/form>/gi, '')
+    .replace(
+      /<(?:div|section|aside)[^>]*(?:id|class)=["'][^"']*(?:application[-_]?form|apply[-_]?(?:form|section|container)|job[-_]?application|application--form)[^"']*["'][\s\S]*?<\/(?:div|section|aside)>/gi,
+      '',
+    )
+    .replace(/<(?:input|textarea|select|button)[^>]*>[\s\S]*?<\/(?:textarea|select|button)>/gi, '')
+    .replace(/<(?:input|textarea|select|button)[^>]*\/?>/gi, '')
+    .replace(/<header[\s\S]*?<\/header>/gi, '')
+    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+    .replace(/<nav[\s\S]*?<\/nav>/gi, '');
+}
+
+/**
+ * Cuts off any application form text if it was included in the markup outside standard form tags.
+ */
+export function cleanApplicationFormText(text: string): string {
+  const cutoffRegex =
+    /\n\s*(?:Apply for this job|Submit application|Autofill my application|Application Form|Откликнуться на вакансию|Откликнуться)\b[\s\S]*$/i;
+  return text.replace(cutoffRegex, '').trim();
+}
+
+export function htmlToText(html: string): string {
+  let text = stripUnwantedHtml(html)
     .replace(/<br\s*[/]?>/gi, '\n')
     .replace(/<\/(p|div|section|article)>/gi, '\n\n')
     .replace(/<\/(h[1-6])>/gi, '\n\n')
@@ -52,26 +111,26 @@ export function htmlToText(html: string): string {
     .replace(/<\/li>/gi, '')
     .replace(/<\/(tr|table)>/gi, '\n')
     .replace(/<hr\s*[/]?>/gi, '\n---\n')
-    // Remove all remaining tags
     .replace(/<[^>]+>/g, ' ');
 
   text = decodeHtmlEntities(text);
 
-  // Normalize whitespace: trim lines and remove excessive blank lines
   const lines = text
     .split('\n')
     .map((line) => line.replace(/[ \t]+/g, ' ').trim());
 
-  return lines
+  const result = lines
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+
+  return cleanApplicationFormText(result);
 }
 
 /**
  * Extracts job posting title, company name, and clean text description from page HTML.
  */
-export function parseJobHtml(html: string): ParsedJob {
+export function parseJobHtml(html: string, url?: string): ParsedJob {
   let title = '';
   let company = '';
   let description = '';
@@ -113,71 +172,25 @@ export function parseJobHtml(html: string): ParsedJob {
     }
   }
 
-  // 2. Specific selectors for HeadHunter (hh.ru)
+  // 2. Targeted vacancy containers (Greenhouse, Lever, HeadHunter, Habr Career, etc.)
   if (!description) {
-    const hhDescMatch =
-      html.match(/<div[^>]*data-qa=["']vacancy-description["'][^>]*>([\s\S]*?)<\/div>/i) ||
-      html.match(/<div[^>]*class=["'][^"']*g-user-content[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
-    if (hhDescMatch) {
-      description = htmlToText(hhDescMatch[1]);
-    }
-  }
-
-  if (!title) {
-    const hhTitleMatch = html.match(/<h1[^>]*data-qa=["']vacancy-title["'][^>]*>([\s\S]*?)<\/h1>/i);
-    if (hhTitleMatch) {
-      title = cleanText(hhTitleMatch[1]);
-    }
-  }
-
-  if (!company) {
-    const hhCompanyMatch =
-      html.match(/<a[^>]*data-qa=["']vacancy-company-name["'][^>]*>([\s\S]*?)<\/a>/i) ||
-      html.match(/<span[^>]*data-qa=["']vacancy-company-name["'][^>]*>([\s\S]*?)<\/span>/i);
-    if (hhCompanyMatch) {
-      company = cleanText(hhCompanyMatch[1]);
-    }
-  }
-
-  // 3. Common class/id names for job postings
-  if (!description) {
-    const commonSectionMatch = html.match(
-      /<(?:div|section|article)[^>]*(?:class|id)=["'][^"']*(?:job[-_]?description|vacancy[-_]?description|posting[-_]?description|job[-_]?details|description__text)[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|section|article)>/i,
+    const containerMatch = html.match(
+      /<(div|section|article)[^>]*(?:class|id|data-qa)=["'][^"']*(?:job__description|job[-_]?description|vacancy[-_]?description|posting[-_]?description|job[-_]?details|description__text|vacancy-section|g-user-content)[^"']*["'][^>]*>/i,
     );
-    if (commonSectionMatch) {
-      description = htmlToText(commonSectionMatch[1]);
+    if (containerMatch && containerMatch.index !== undefined) {
+      const balanced = extractBalancedElement(html, containerMatch.index, containerMatch[1]);
+      if (balanced) {
+        const parsedDesc = htmlToText(balanced);
+        if (parsedDesc.length > 30) {
+          description = parsedDesc;
+        }
+      }
     }
   }
 
-  // 4. Fallback to OpenGraph / Twitter meta tags for metadata
-  if (!title) {
-    const metaTitle =
-      html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i) ||
-      html.match(/<meta[^>]*name=["']twitter:title["'][^>]*content=["']([^"']*)["']/i) ||
-      html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    if (metaTitle) {
-      title = cleanText(metaTitle[1]);
-    }
-  }
-
-  if (!company) {
-    const metaSite = html.match(/<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']*)["']/i);
-    if (metaSite) {
-      company = cleanText(metaSite[1]);
-    }
-  }
-
-  // 5. Fallback: Parse body if description is still empty or extremely short (< 15 chars)
-  if (description.length < 15) {
-    let strippedBody = html
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<svg[\s\S]*?<\/svg>/gi, '')
-      .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
-      .replace(/<header[\s\S]*?<\/header>/gi, '')
-      .replace(/<footer[\s\S]*?<\/footer>/gi, '')
-      .replace(/<nav[\s\S]*?<\/nav>/gi, '');
-
+  // 3. Fallback: Parse body (with forms and applications cleanly stripped)
+  if (!description || description.length < 50) {
+    let strippedBody = stripUnwantedHtml(html);
     const bodyMatch = strippedBody.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
     if (bodyMatch) {
       strippedBody = bodyMatch[1];
@@ -185,6 +198,45 @@ export function parseJobHtml(html: string): ParsedJob {
     const bodyText = htmlToText(strippedBody);
     if (bodyText.length > description.length) {
       description = bodyText;
+    }
+  }
+
+  // 4. Title and company extraction
+  const rawTitle = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '';
+  const metaTitle = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i)?.[1] || '';
+  const fullTitle = cleanText(rawTitle || metaTitle);
+
+  if (!company) {
+    const atMatch = fullTitle.match(/\bat\s+([A-Z0-9][A-Za-z0-9\s&.,'-]+?)(?:\s*[|•\-–—]|$)/i);
+    if (atMatch) {
+      company = atMatch[1].trim();
+    } else {
+      const metaSite = html.match(/<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']*)["']/i)?.[1];
+      if (metaSite) {
+        company = cleanText(metaSite);
+      } else if (url) {
+        const urlMatch = url.match(/(?:greenhouse\.io|lever\.co|workable\.com)\/([^/]+)/i);
+        if (urlMatch) {
+          company = urlMatch[1].charAt(0).toUpperCase() + urlMatch[1].slice(1);
+        }
+      }
+    }
+  }
+
+  if (!title) {
+    const h1Match = html.match(
+      /<(?:h1|div)[^>]*(?:class|data-qa)=["'][^"']*(?:job__title|vacancy-title|posting-headline|job-title)[^"']*["'][^>]*>([\s\S]*?)<\/(?:h1|div)>/i,
+    );
+    if (h1Match) {
+      title = cleanText(h1Match[1]);
+    } else if (metaTitle && !metaTitle.toLowerCase().startsWith('job application')) {
+      title = cleanText(metaTitle);
+    } else if (fullTitle) {
+      title = fullTitle
+        .replace(/^(?:Job Application for|Apply for|Opening for|Hiring:?|Careers at)\s+/i, '')
+        .replace(/\s+at\s+[A-Za-z0-9\s&.,'-]+$/i, '')
+        .replace(/\s*[-|•–—]\s*[A-Za-z0-9\s&.,'-]+$/i, '')
+        .trim();
     }
   }
 

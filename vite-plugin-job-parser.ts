@@ -95,7 +95,7 @@ export function jobParserPlugin(): Plugin {
             }
 
             const html = await fetchResponse.text();
-            const parsed = parseJobHtml(html);
+            const parsed = parseJobHtml(html, targetUrl);
 
             if (!parsed.description) {
               sendJson(422, {
