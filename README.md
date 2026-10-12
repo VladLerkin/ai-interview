@@ -2,7 +2,7 @@
 
 > An advanced, interactive AI-powered technical and behavioral interview simulator combining agentic LangGraph workflows, real-time neural speech synthesis, audio-driven phonetic lip-sync, and 3D avatars.
 
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-26.8.2-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.4.21-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
 [![React](https://img.shields.io/badge/React-19.3.0-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -29,13 +29,13 @@
 
 ## 🛠️ Tech Stack
 
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-26.8.2-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.4.21-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
 [![React](https://img.shields.io/badge/React-19.3.0-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
 
-- **Runtime**: [Node.js](https://nodejs.org/) `>= 20.0.0` (tested on v24 / v26)
+- **Runtime**: [Node.js](https://nodejs.org/) (`v26.8.2`)
 - **Agent Workflow**: [LangGraph](https://github.com/langchain-ai/langgraphjs) (`^1.4.21`) & [LangChain Core](https://github.com/langchain-ai/langchainjs) (`^1.2.17`)
 - **Frontend Core**: [React 19](https://react.dev/) (`^19.3.0`), [TypeScript 7](https://www.typescriptlang.org/) (`^7.0.2`), [Vite 8](https://vite.dev/) (`^8.3.0`)
 
@@ -62,7 +62,7 @@ The simulator provides full UI localization, tailored LLM prompt instructions, a
 ## Getting Started
 
 ### Prerequisites
-- Node.js >= 20.0.0
+- Node.js 26.8.2 (configured via `.nvmrc`)
 - API Key from Google Gemini, OpenAI, Anthropic, or DeepSeek.
 
 ### Installation
