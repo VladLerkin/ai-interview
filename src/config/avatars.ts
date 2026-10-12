@@ -5,7 +5,7 @@
 export const REMOTE_GLB_AVATAR_URL =
   'https://raw.githubusercontent.com/VladLerkin/ai-interview/75a4105/public/avatar.glb';
 
-export const LOCAL_VRM_AVATAR_URL = '/avatar.vrm';
+const LOCAL_VRM_AVATAR_URL = '/avatar.vrm';
 
 export const CUSTOM_AVATAR_ID = 'custom';
 

@@ -4,12 +4,13 @@ import { SetupModal } from './components/SetupModal';
 import { InterviewRoom } from './components/interview/InterviewRoom';
 import { getStoredData, setStoredData, deleteStoredData } from './lib/store';
 import { stopAllSpeech, globalAudioAnalyser } from './lib/audio';
+import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { Download } from 'lucide-react';
 
 function App() {
   const [config, setConfig] = useState<InterviewConfig | null>(null);
   const [loading, setLoading] = useState(true);
-  const [installPrompt, setInstallPrompt] = useState<any>((window as any).deferredPrompt);
+  const { canInstall, install } = useInstallPrompt();
 
   // Global listener to unlock Web Audio API & SpeechSynthesis on any user interaction
   useEffect(() => {
@@ -30,26 +31,6 @@ function App() {
       window.removeEventListener('keydown', unlock);
     };
   }, []);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-      (window as any).deferredPrompt = e;
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstall = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setInstallPrompt(null);
-      (window as any).deferredPrompt = null;
-    }
-  };
 
   useEffect(() => {
     getStoredData('interviewConfig').then((data) => {
@@ -96,9 +77,9 @@ function App() {
         <InterviewRoom config={config} onReset={handleReset} />
       )}
 
-      {installPrompt && (
+      {canInstall && (
         <button
-          onClick={handleInstall}
+          onClick={install}
           className="fixed bottom-6 right-6 z-50 bg-primary-600 hover:bg-primary-500 text-white font-semibold px-5 py-3 rounded-full shadow-xl shadow-primary-500/20 flex items-center gap-2 transition-all transform hover:-translate-y-1 hover:scale-105"
         >
           <Download className="w-5 h-5" />

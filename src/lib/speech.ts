@@ -71,14 +71,6 @@ export const isAndroid = (): boolean => /Android/i.test(navigator.userAgent);
 export const getSpeechRecognitionCtor = (): SpeechRecognitionConstructor | undefined =>
   window.SpeechRecognition ?? window.webkitSpeechRecognition;
 
-/**
- * Safari/iOS only allow speech synthesis after it was triggered from a user gesture.
- * Call this from a click handler to unlock it for later programmatic use.
- */
-export const unlockSpeechSynthesis = (): void => {
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
-};
-
 /** Picks a pleasant (preferably female / natural) voice for the language, falling back to any match. */
 export const pickVoice = (voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | undefined => {
   const langPrefix = lang.split('-')[0].toLowerCase();

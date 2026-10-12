@@ -88,7 +88,7 @@ function charToViseme(char: string): Viseme {
 }
 
 /** Check if character belongs to CJK (Hanzi, Kanji, Hiragana, Katakana, Hangul) */
-export function isCJKChar(char: string): boolean {
+function isCJKChar(char: string): boolean {
   if (!char) return false;
   const code = char.charCodeAt(0);
   return (

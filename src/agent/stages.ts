@@ -1,7 +1,7 @@
 import type { InterviewType } from '../types/interview';
 
 /** Ordered stages per interview type. The agent advances one stage per candidate answer. */
-export const STAGES_BY_TYPE: Record<InterviewType, string[]> = {
+const STAGES_BY_TYPE: Record<InterviewType, string[]> = {
   hr_screening: ['introduction', 'background', 'motivation', 'culture_fit', 'salary_expectations', 'candidate_questions'],
   technical: ['warmup', 'core_skills', 'problem_solving', 'technical_deepdive', 'edge_cases', 'wrapup'],
   system_design: ['requirements', 'high_level_design', 'detailed_design', 'tradeoffs', 'scalability', 'wrapup'],

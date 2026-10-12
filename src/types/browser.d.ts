@@ -51,6 +51,8 @@ interface BeforeInstallPromptEvent extends Event {
 interface Window {
   SpeechRecognition?: SpeechRecognitionConstructor;
   webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  /** Set by the inline script in index.html. */
+  deferredPrompt?: BeforeInstallPromptEvent | null;
 }
 
 interface WindowEventMap {

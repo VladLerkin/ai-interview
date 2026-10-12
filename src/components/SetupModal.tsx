@@ -1,84 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { extractTextFromPDF } from '../lib/pdf';
 import { getStoredData, setStoredData } from '../lib/store';
-import { Settings, Upload, Briefcase, Building, Key, UserCheck, Code2, LayoutDashboard, Brain, Layers, ChevronRight, AlertCircle, X, Link2, Loader2, CheckCircle2, Download } from 'lucide-react';
-import type { InterviewType, InterviewConfig, Language } from '../types/interview';
+import { Settings, Upload, Briefcase, Building, Key, UserCheck, ChevronRight, AlertCircle, X, Link2, Loader2, CheckCircle2, Download } from 'lucide-react';
+import type { InterviewType, InterviewConfig, Language, Provider } from '../types/interview';
 import { LANGUAGES } from '../config/languages';
+import { DEFAULT_PROVIDER, PROVIDERS } from '../config/providers';
 import { getTranslation } from '../lib/i18n';
 import { fetchJobFromUrl, formatJobText } from '../lib/jobParser';
 import { PREDEFINED_AVATARS, CUSTOM_AVATAR_ID, REMOTE_GLB_AVATAR_URL, DEFAULT_AVATAR_ID } from '../config/avatars';
+import { INTERVIEW_TYPES, getInterviewTypeOption } from '../config/interviewTypes';
 import { testLlmConnection, type LlmTestResult } from '../agent/testLlm';
-
-export type { InterviewType, InterviewConfig };
-
 
 interface SetupModalProps {
   onStart: (config: InterviewConfig) => void;
 }
 
-const interviewTypes: {
-  id: InterviewType;
-  title: string;
-  subtitle: string;
-  description: string;
-  icon: React.ReactNode;
-  gradient: string;
-  stages: string[];
-}[] = [
-    {
-      id: 'hr_screening',
-      title: 'HR Screening',
-      subtitle: 'Culture fit & motivation',
-      description: 'Initial screening call focusing on your background, motivation, salary expectations, and cultural fit.',
-      icon: <UserCheck className="w-6 h-6" />,
-      gradient: 'from-emerald-500 to-teal-600',
-      stages: ['Introduction', 'Background', 'Motivation', 'Q&A'],
-    },
-    {
-      id: 'technical',
-      title: 'Technical Interview',
-      subtitle: 'Deep dive into skills',
-      description: 'In-depth technical questions about your stack, algorithms, code design, and problem-solving approach.',
-      icon: <Code2 className="w-6 h-6" />,
-      gradient: 'from-blue-500 to-indigo-600',
-      stages: ['Warmup', 'Core Skills', 'Problem Solving', 'Deep Dive'],
-    },
-    {
-      id: 'system_design',
-      title: 'System Design',
-      subtitle: 'Architecture & scalability',
-      description: 'Design large-scale systems, discuss trade-offs, scalability patterns, and architectural decisions.',
-      icon: <LayoutDashboard className="w-6 h-6" />,
-      gradient: 'from-purple-500 to-violet-600',
-      stages: ['Requirements', 'High-Level Design', 'Deep Dive', 'Trade-offs'],
-    },
-    {
-      id: 'behavioral',
-      title: 'Behavioral (STAR)',
-      subtitle: 'Situation, Task, Action, Result',
-      description: 'Tell stories about past experiences using the STAR method. Leadership, teamwork, conflict resolution.',
-      icon: <Brain className="w-6 h-6" />,
-      gradient: 'from-amber-500 to-orange-600',
-      stages: ['Teamwork', 'Leadership', 'Conflict', 'Growth'],
-    },
-    {
-      id: 'full_loop',
-      title: 'Full Interview Loop',
-      subtitle: 'Complete simulation',
-      description: 'A realistic full interview combining all stages: HR screening, technical, behavioral, and wrap-up.',
-      icon: <Layers className="w-6 h-6" />,
-      gradient: 'from-rose-500 to-pink-600',
-      stages: ['HR Screen', 'Technical', 'Behavioral', 'Wrap-up'],
-    },
-  ];
-
-
-
 export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [interviewType, setInterviewType] = useState<InterviewType>('hr_screening');
   const [language, setLanguage] = useState<Language>('en-GB');
-  const [provider, setProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'deepseek'>('gemini');
+  const [provider, setProvider] = useState<Provider>(DEFAULT_PROVIDER);
   const [apiKey, setApiKey] = useState(localStorage.getItem('interview_apikey') || '');
   const [jobUrl, setJobUrl] = useState('');
   const [isImportingJob, setIsImportingJob] = useState(false);
@@ -249,7 +190,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
     });
   };
 
-  const selectedType = interviewTypes.find((t) => t.id === interviewType)!;
+  const selectedType = getInterviewTypeOption(interviewType);
 
   return (
     <div className="fixed inset-0 bg-dark-900/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -279,7 +220,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
 
             <h2 className="text-lg font-semibold text-white mb-6 text-center">{t('selectType')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {interviewTypes.map((type) => {
+              {INTERVIEW_TYPES.map((type) => {
                 const isSelected = interviewType === type.id;
                 return (
                   <button
@@ -300,7 +241,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     <div
                       className={`w-11 h-11 rounded-xl bg-gradient-to-br ${type.gradient} flex items-center justify-center text-white mb-3 shadow-lg transition-transform group-hover:scale-110`}
                     >
-                      {type.icon}
+                      <type.icon className="w-6 h-6" />
                     </div>
 
                     {/* Title */}
@@ -349,7 +290,7 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
               <div
                 className={`w-9 h-9 rounded-lg bg-gradient-to-br ${selectedType.gradient} flex items-center justify-center text-white flex-shrink-0`}
               >
-                {selectedType.icon}
+                <selectedType.icon className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white">{selectedType.title}</p>
@@ -371,14 +312,15 @@ export const SetupModal: React.FC<SetupModalProps> = ({ onStart }) => {
                     className="w-full bg-dark-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                     value={provider}
                     onChange={(e) => {
-                      setProvider(e.target.value as any);
+                      setProvider(e.target.value as Provider);
                       setLlmTestResult(null);
                     }}
                   >
-                    <option value="gemini">Google Gemini (Gemini 3.8 Flash)</option>
-                    <option value="openai">OpenAI (GPT-4o-Mini)</option>
-                    <option value="anthropic">Anthropic (Claude 3 Haiku)</option>
-                    <option value="deepseek">DeepSeek (DeepSeek Chat)</option>
+                    {PROVIDERS.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

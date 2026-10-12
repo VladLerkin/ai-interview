@@ -79,7 +79,7 @@ function setupVrmRig(vrm: VRM, scene: THREE.Scene): VrmRig {
 
 
 
-export const MOBILE_BREAKPOINT_PX = 768;
+const MOBILE_BREAKPOINT_PX = 768;
 
 /**
  * Portrait close-up in front of the head bone.
