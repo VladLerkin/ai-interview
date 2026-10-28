@@ -112,7 +112,7 @@ function escapeXml(unsafe: string): string {
 
 async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Array> {
   const { voice, locale } = getEdgeVoice(lang);
-  const connectionId = crypto.randomUUID().replace(/-/g, '');
+  const connectionId = crypto.randomUUID();
   const secMsGec = await generateSecMsGec();
   const synthUrl = `${WSS_URL}?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}&Sec-MS-GEC=${secMsGec}&Sec-MS-GEC-Version=2-143.0.3650.96&ConnectionId=${connectionId}`;
 
@@ -139,14 +139,26 @@ async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Ar
 
   return new Promise<Uint8Array>((resolve, reject) => {
     const audioChunks: Uint8Array[] = [];
+    let turnEnded = false;
     const timeout = setTimeout(() => {
       try { ws.close(); } catch { /* ignore */ }
       reject(new Error('Edge TTS request timed out'));
-    }, 15000);
+    }, 20000);
 
     const cleanup = () => {
       clearTimeout(timeout);
       try { ws.close(); } catch { /* ignore */ }
+    };
+
+    const mergeChunks = (): Uint8Array => {
+      const totalLen = audioChunks.reduce((acc, c) => acc + c.length, 0);
+      const merged = new Uint8Array(totalLen);
+      let offset = 0;
+      for (const c of audioChunks) {
+        merged.set(c, offset);
+        offset += c.length;
+      }
+      return merged;
     };
 
     ws.addEventListener('error', (err: any) => {
@@ -156,32 +168,23 @@ async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Ar
 
     ws.addEventListener('close', () => {
       cleanup();
-      if (audioChunks.length === 0) {
-        reject(new Error('WebSocket closed before receiving audio'));
+      if (!turnEnded || audioChunks.length === 0) {
+        reject(new Error('WebSocket closed before synthesis completed'));
       } else {
-        const totalLen = audioChunks.reduce((acc, c) => acc + c.length, 0);
-        const merged = new Uint8Array(totalLen);
-        let offset = 0;
-        for (const c of audioChunks) {
-          merged.set(c, offset);
-          offset += c.length;
-        }
-        resolve(merged);
+        resolve(mergeChunks());
       }
     });
 
     ws.addEventListener('message', (event: any) => {
       if (typeof event.data === 'string') {
         if (event.data.includes('Path:turn.end')) {
+          turnEnded = true;
           cleanup();
-          const totalLen = audioChunks.reduce((acc, c) => acc + c.length, 0);
-          const merged = new Uint8Array(totalLen);
-          let offset = 0;
-          for (const c of audioChunks) {
-            merged.set(c, offset);
-            offset += c.length;
+          if (audioChunks.length === 0) {
+            reject(new Error('Received turn.end with no audio data'));
+          } else {
+            resolve(mergeChunks());
           }
-          resolve(merged);
         }
       } else if (event.data instanceof ArrayBuffer) {
         const buf = new Uint8Array(event.data);
@@ -213,7 +216,7 @@ async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Ar
   });
 }
 
-async function synthesizeEdgeSpeechWithRetry(text: string, lang: string, maxAttempts = 3): Promise<Uint8Array> {
+async function synthesizeEdgeSpeechWithRetry(text: string, lang: string, maxAttempts = 4): Promise<Uint8Array> {
   let lastError: unknown = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -223,7 +226,7 @@ async function synthesizeEdgeSpeechWithRetry(text: string, lang: string, maxAtte
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`[Cloudflare TTS] Attempt ${attempt} failed: ${msg}. Retrying...`);
       if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
       }
     }
   }

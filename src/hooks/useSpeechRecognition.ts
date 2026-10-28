@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { globalAudioAnalyser } from '../lib/audio';
 import { getSpeechRecognitionCtor, isAndroid } from '../lib/speech';
 import type { Language } from '../types/interview';
 
@@ -57,6 +58,7 @@ export const useSpeechRecognition = (language: Language) => {
       const pending = interimRef.current.trim();
       if (pending) setTranscriptState((prev) => appendText(prev, pending));
       setInterim('');
+      globalAudioAnalyser.resume().catch(() => {});
     };
 
     recognitionRef.current = recognition;

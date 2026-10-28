@@ -14,6 +14,59 @@ export interface PlaySpeechCallbacks {
   onError?: (err: Error) => void;
 }
 
+async function resumeAnalyserWithTimeout(timeoutMs = 150): Promise<void> {
+  try {
+    await Promise.race([
+      globalAudioAnalyser.resume(),
+      new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+    ]);
+  } catch {
+    /* ignore */
+  }
+}
+
+async function fetchEdgeTtsAudio(
+  text: string,
+  lang: string,
+  signal: AbortSignal,
+  maxAttempts = 3,
+): Promise<ArrayBuffer> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (signal.aborted) {
+      throw new DOMException('Aborted', 'AbortError');
+    }
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, lang }),
+        signal,
+      });
+
+      if (!res.ok) {
+        throw new Error(`TTS server responded with status: ${res.status}`);
+      }
+
+      const arrayBuffer = await res.arrayBuffer();
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error('Received empty audio blob');
+      }
+
+      return arrayBuffer;
+    } catch (err: unknown) {
+      if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
+        throw err;
+      }
+      lastError = err;
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
+      }
+    }
+  }
+  throw lastError || new Error('Failed to fetch Edge TTS audio');
+}
+
 async function playViaAudioContext(
   ctx: AudioContext,
   arrayBuffer: ArrayBuffer,
@@ -23,7 +76,7 @@ async function playViaAudioContext(
 ): Promise<boolean> {
   const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
   if (requestId !== currentRequestId) {
-    return false;
+    return true;
   }
 
   const source = ctx.createBufferSource();
@@ -67,7 +120,7 @@ function schedulePlayOnFirstGesture(
     }
     if (requestId !== currentRequestId) return;
 
-    await globalAudioAnalyser.resume();
+    await resumeAnalyserWithTimeout(300);
     if (requestId !== currentRequestId) return;
 
     const ctx = globalAudioAnalyser.context;
@@ -109,38 +162,23 @@ export async function playEdgeSpeech(
   currentAbortController = abortController;
 
   try {
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, lang }),
-      signal: abortController.signal,
-    });
-
+    const arrayBuffer = await fetchEdgeTtsAudio(text, lang, abortController.signal);
     if (abortController.signal.aborted || requestId !== currentRequestId) {
-      return false;
+      return true;
     }
 
-    if (!res.ok) {
-      throw new Error(`TTS server responded with status: ${res.status}`);
-    }
-
-    const arrayBuffer = await res.arrayBuffer();
+    await resumeAnalyserWithTimeout();
     if (abortController.signal.aborted || requestId !== currentRequestId) {
-      return false;
-    }
-
-    if (arrayBuffer.byteLength === 0) {
-      throw new Error('Received empty audio blob');
-    }
-
-    await globalAudioAnalyser.resume();
-    if (abortController.signal.aborted || requestId !== currentRequestId) {
-      return false;
+      return true;
     }
 
     const ctx = globalAudioAnalyser.context;
     if (ctx && ctx.state === 'running') {
-      return await playViaAudioContext(ctx, arrayBuffer, text, requestId, callbacks);
+      try {
+        return await playViaAudioContext(ctx, arrayBuffer, text, requestId, callbacks);
+      } catch (decodeErr) {
+        console.warn('[EdgeTTS] AudioContext decode failed, falling back to HTMLAudioElement:', decodeErr);
+      }
     }
 
     const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
@@ -149,7 +187,7 @@ export async function playEdgeSpeech(
       try {
         URL.revokeObjectURL(url);
       } catch { /* ignore */ }
-      return false;
+      return true;
     }
 
     currentBlobUrl = url;
@@ -215,7 +253,7 @@ export async function playEdgeSpeech(
       }
       currentAudio = null;
 
-      if (playErr instanceof DOMException && playErr.name === 'NotAllowedError') {
+      if ((playErr as Error)?.name === 'NotAllowedError') {
         schedulePlayOnFirstGesture(arrayBuffer, text, requestId, callbacks);
         return true;
       }
@@ -230,7 +268,7 @@ export async function playEdgeSpeech(
         currentBlobUrl = null;
       }
       currentAudio = null;
-      return false;
+      return true;
     }
     const error = err instanceof Error ? err : new Error(String(err));
     console.warn('[EdgeTTS] Could not play edge speech, falling back to browser synthesis:', error.message);

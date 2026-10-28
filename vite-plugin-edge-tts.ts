@@ -32,7 +32,7 @@ function escapeXml(unsafe: string): string {
   });
 }
 
-async function synthesizeEdgeSpeechWithRetry(text: string, voice: string, maxAttempts = 3): Promise<Buffer> {
+async function synthesizeEdgeSpeechWithRetry(text: string, voice: string, maxAttempts = 4): Promise<Buffer> {
   let lastError: unknown = null;
   const escapedText = escapeXml(text);
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -46,13 +46,17 @@ async function synthesizeEdgeSpeechWithRetry(text: string, voice: string, maxAtt
         audioStream.on('end', () => resolve());
         audioStream.on('error', (err: unknown) => reject(err));
       });
-      return Buffer.concat(chunks);
+      const buf = Buffer.concat(chunks);
+      if (buf.length === 0) {
+        throw new Error('Received empty audio stream from Edge TTS');
+      }
+      return buf;
     } catch (err: unknown) {
       lastError = err;
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`[Edge-TTS] Attempt ${attempt} failed: ${msg}. Retrying...`);
       if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
       }
     } finally {
       try {
