@@ -24,17 +24,77 @@ function getEdgeVoice(lang = 'en-US'): { voice: string; locale: string } {
   return { voice: 'en-US-AvaNeural', locale: 'en-US' };
 }
 
-async function generateSecMsGec(): Promise<string> {
-  const ticks = Math.floor(Date.now() / 1000) + 11644473600;
-  const rounded = ticks - (ticks % 300);
-  const windowsTicks = rounded * 10000000;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`${windowsTicks}${TRUSTED_CLIENT_TOKEN}`);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
+const EDGE_COPYRIGHT = 'Copyright (C) Microsoft Corporation. All rights reserved.';
+const SWAP_FIRST_WORD = { swappedWord: 0xEF0569FB, swappedSum: 0x76F50F34, swappedProduct: 0xC3EFEA97 };
+const SWAP_SECOND_WORD = { swappedWord: 0xC31713DB, swappedSum: 0x1881CE3C, swappedProduct: 0x35BD1EC9 };
+const MIX_FIRST_WORD = [0xCF98B111, 0x87085B9F, 0x12CEB96D, 0x257E1D83];
+const MIX_SECOND_WORD = [0xA27416F5, 0xD38396FF, 0x7C932B89, 0xBFA49F69];
+
+let clockOffsetMs = 0;
+
+function swapHalves(value: number): number {
+  return ((value << 16) | (value >>> 16)) >>> 0;
+}
+
+function swapTerm(
+  word: number,
+  key: number,
+  multipliers: { swappedWord: number; swappedSum: number; swappedProduct: number },
+): number {
+  const sum = Math.imul(word, key) + Math.imul(swapHalves(word), multipliers.swappedWord);
+  const product = Math.imul(swapHalves(sum), multipliers.swappedSum) >>> 0;
+  return (Math.imul(swapHalves(product), multipliers.swappedProduct) + product) >>> 0;
+}
+
+function swapAndMultiply(value: number, multipliers: number[]): number {
+  for (const multiplier of multipliers) {
+    value = Math.imul(swapHalves(value), multiplier) >>> 0;
+  }
+  return value;
+}
+
+function cs64(message: Uint8Array, digest: Uint8Array): Uint8Array {
+  const digestView = new DataView(digest.buffer, digest.byteOffset, digest.byteLength);
+  const firstKey = (digestView.getUint32(0, true) | 1) >>> 0;
+  const secondKey = (digestView.getUint32(4, true) | 1) >>> 0;
+  const padded = new Uint8Array(Math.ceil(message.length / 8) * 8);
+  padded.set(message);
+  const words = new DataView(padded.buffer);
+  let swapSum = 0;
+  let lastSwap = 0;
+  let mix = 0;
+  let mixSum = 0;
+  for (let offset = 0; offset < padded.length; offset += 8) {
+    const firstWord = words.getUint32(offset, true);
+    const secondWord = words.getUint32(offset + 4, true);
+    const firstSwap = swapTerm(firstWord, firstKey, SWAP_FIRST_WORD);
+    lastSwap = swapTerm(secondWord, secondKey, SWAP_SECOND_WORD);
+    swapSum = (swapSum + firstSwap + lastSwap) >>> 0;
+    mix = swapAndMultiply(Math.imul(mix + firstWord, firstKey), MIX_FIRST_WORD);
+    mixSum = (mixSum + mix) >>> 0;
+    mix = swapAndMultiply(Math.imul(mix + secondWord, secondKey), MIX_SECOND_WORD);
+    mixSum = (mixSum + mix) >>> 0;
+  }
+  const checksum = new Uint8Array(8);
+  const checksumView = new DataView(checksum.buffer);
+  checksumView.setUint32(0, lastSwap ^ mix, true);
+  checksumView.setUint32(4, swapSum ^ mixSum, true);
+  return checksum;
+}
+
+function toUpperHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0'))
     .join('')
     .toUpperCase();
+}
+
+async function generateSecMsGec(): Promise<string> {
+  const ticks = Math.floor((Date.now() + clockOffsetMs) / 1000) + 11644473600;
+  const rounded = ticks - (ticks % 300);
+  const windowsTicks = rounded * 10000000;
+  const message = new TextEncoder().encode(`${EDGE_COPYRIGHT}${windowsTicks}${TRUSTED_CLIENT_TOKEN}`);
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', message));
+  return `${toUpperHex(cs64(message, digest))}-${toUpperHex(digest)}`;
 }
 
 function escapeXml(unsafe: string): string {
@@ -54,7 +114,7 @@ async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Ar
   const { voice, locale } = getEdgeVoice(lang);
   const connectionId = crypto.randomUUID().replace(/-/g, '');
   const secMsGec = await generateSecMsGec();
-  const synthUrl = `${WSS_URL}?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}&Sec-MS-GEC=${secMsGec}&Sec-MS-GEC-Version=1-143.0.3650.96&ConnectionId=${connectionId}`;
+  const synthUrl = `${WSS_URL}?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}&Sec-MS-GEC=${secMsGec}&Sec-MS-GEC-Version=2-143.0.3650.96&ConnectionId=${connectionId}`;
 
   const resp = await fetch(synthUrl, {
     headers: {
@@ -66,6 +126,13 @@ async function synthesizeEdgeSpeech(text: string, lang: string): Promise<Uint8Ar
 
   const ws = (resp as any).webSocket;
   if (!ws) {
+    const serverDate = resp.headers?.get?.('date');
+    if (resp.status === 403 && serverDate) {
+      const serverTime = Date.parse(serverDate);
+      if (Number.isFinite(serverTime)) {
+        clockOffsetMs = serverTime - Date.now();
+      }
+    }
     throw new Error(`Failed to upgrade to Edge TTS WebSocket (status: ${resp.status})`);
   }
   ws.accept();

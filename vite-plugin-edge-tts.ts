@@ -19,13 +19,27 @@ function getEdgeVoice(lang: string = 'en-US'): string {
   return 'en-US-AvaNeural';
 }
 
+function escapeXml(unsafe: string): string {
+  return unsafe.replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+      default: return c;
+    }
+  });
+}
+
 async function synthesizeEdgeSpeechWithRetry(text: string, voice: string, maxAttempts = 3): Promise<Buffer> {
   let lastError: unknown = null;
+  const escapedText = escapeXml(text);
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const tts = new MsEdgeTTS();
     try {
-      const tts = new MsEdgeTTS();
       await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-      const { audioStream } = tts.toStream(text);
+      const { audioStream } = tts.toStream(escapedText);
       const chunks: Buffer[] = [];
       await new Promise<void>((resolve, reject) => {
         audioStream.on('data', (c: Buffer) => chunks.push(c));
@@ -40,6 +54,10 @@ async function synthesizeEdgeSpeechWithRetry(text: string, voice: string, maxAtt
       if (attempt < maxAttempts) {
         await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
       }
+    } finally {
+      try {
+        tts.close();
+      } catch { /* ignore */ }
     }
   }
   throw lastError || new Error('TTS failed after retries');
