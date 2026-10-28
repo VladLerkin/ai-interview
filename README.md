@@ -3,10 +3,10 @@
 > An advanced, interactive AI-powered technical and behavioral interview simulator combining agentic LangGraph workflows, real-time neural speech synthesis, audio-driven phonetic lip-sync, and 3D avatars.
 
 [![Node.js](https://img.shields.io/badge/Node.js-26.8.2-339933.svg?logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![LangGraph](https://img.shields.io/badge/LangGraph-1.4.21-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
-[![React](https://img.shields.io/badge/React-19.3.0-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.5.3-1C3C3C.svg?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraphjs)
+[![React](https://img.shields.io/badge/React-19.3.1-61DAFB.svg?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Vite-8.3.4-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
+[![Vite](https://img.shields.io/badge/Vite-8.3.5-646CFF.svg?logo=vite&logoColor=white)](https://vite.dev)
 
 ## ✨ Features
 
