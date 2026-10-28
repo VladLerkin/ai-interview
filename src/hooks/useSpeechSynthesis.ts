@@ -82,9 +82,7 @@ export const useSpeechSynthesis = (language: Language) => {
         const sentences = splitSentences(speechText);
         if (sentences.length === 0) return;
 
-        setIsSpeaking(true);
         globalSpeechVisemeTracker.reset();
-        globalSpeechVisemeTracker.setActive(true);
 
         const voice = pickVoice(synth.getVoices(), language);
 
@@ -97,18 +95,28 @@ export const useSpeechSynthesis = (language: Language) => {
           utterance.rate = rate;
           utterance.volume = 1.0;
 
+          if (index === 0) {
+            utterance.onstart = () => {
+              if (!cancelPendingRef.current) {
+                setIsSpeaking(true);
+                globalSpeechVisemeTracker.setActive(true);
+              }
+            };
+          }
+
           utterance.onboundary = (event) => {
             if (event.name === 'word') {
               globalSpeechVisemeTracker.onWordBoundary(sentence, event.charIndex, event.charLength, rate);
             }
           };
 
+          utterance.onerror = () => {
+            setIsSpeaking(false);
+            globalSpeechVisemeTracker.setActive(false);
+          };
+
           if (index === sentences.length - 1) {
             utterance.onend = () => {
-              setIsSpeaking(false);
-              globalSpeechVisemeTracker.setActive(false);
-            };
-            utterance.onerror = () => {
               setIsSpeaking(false);
               globalSpeechVisemeTracker.setActive(false);
             };

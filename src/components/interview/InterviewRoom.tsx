@@ -42,7 +42,15 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
     };
   }, [stopSpeaking, stopListening]);
 
+  const handleToggleMic = useCallback(() => {
+    if (!stt.isListening) {
+      stopSpeaking();
+    }
+    stt.toggle();
+  }, [stt, stopSpeaking]);
+
   const handleSubmit = async () => {
+    stopSpeaking();
     if (stt.isListening) stt.stop();
     if (await submitAnswer(stt.transcript)) stt.clearTranscript();
   };
@@ -87,7 +95,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({ config, onReset })
               canSubmit={Boolean(stt.transcript.trim())}
               isSpeaking={tts.isSpeaking}
               onStopSpeaking={tts.stop}
-              onToggleMic={stt.toggle}
+              onToggleMic={handleToggleMic}
               onSubmit={handleSubmit}
               t={t}
             />

@@ -122,9 +122,11 @@ export const useInterviewSession = (config: InterviewConfig, speak: (text: strin
         const saved = await getStoredData('interviewState');
         if (!isMountedRef.current) return;
         if (saved?.nextInterviewerSpeech) {
-          // Don't auto-speak on restore: without a user gesture the browser blocks TTS
-          // and `isSpeaking` would get stuck at true.
           setSnapshot(saved);
+          if (!saved.isCompleted) {
+            if (modelReadyRef.current) speakAfterGreeting(saved.nextInterviewerSpeech);
+            else pendingSpeechRef.current = saved.nextInterviewerSpeech;
+          }
           return;
         }
 

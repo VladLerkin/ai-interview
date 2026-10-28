@@ -27,6 +27,20 @@ export class AudioAnalyser {
     }
   }
 
+  /** Connects an AudioNode (such as AudioBufferSourceNode) to the Web Audio pipeline */
+  connectSourceNode(node: AudioNode): void {
+    if (!this.ctx || !this.analyser) return;
+    try {
+      this.sourceNode?.disconnect();
+      node.connect(this.analyser);
+      this.sourceNode = node;
+      this.isConnected = true;
+    } catch (e) {
+      console.warn('[AudioAnalyser] connectSourceNode warning:', e);
+      this.isConnected = false;
+    }
+  }
+
   /** Connects an HTMLAudioElement to the Web Audio pipeline */
   connectAudioElement(element: HTMLAudioElement): void {
     if (!this.ctx || !this.analyser) return;

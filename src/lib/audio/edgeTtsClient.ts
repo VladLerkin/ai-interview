@@ -2,14 +2,95 @@ import { globalAudioAnalyser } from './audioAnalyser';
 import { globalSpeechVisemeTracker } from './speechVisemeTracker';
 
 let currentAudio: HTMLAudioElement | null = null;
+let currentBufferSource: AudioBufferSourceNode | null = null;
 let currentBlobUrl: string | null = null;
 let currentAbortController: AbortController | null = null;
+let cleanupUnlockListeners: (() => void) | null = null;
 let currentRequestId = 0;
 
 export interface PlaySpeechCallbacks {
   onStart?: () => void;
   onEnd?: () => void;
   onError?: (err: Error) => void;
+}
+
+async function playViaAudioContext(
+  ctx: AudioContext,
+  arrayBuffer: ArrayBuffer,
+  text: string,
+  requestId: number,
+  callbacks?: PlaySpeechCallbacks,
+): Promise<boolean> {
+  const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+  if (requestId !== currentRequestId) {
+    return false;
+  }
+
+  const source = ctx.createBufferSource();
+  source.buffer = audioBuffer;
+  currentBufferSource = source;
+
+  globalAudioAnalyser.connectSourceNode(source);
+  globalSpeechVisemeTracker.startSpeech(text);
+  if (audioBuffer.duration > 0) {
+    globalSpeechVisemeTracker.adjustDuration(audioBuffer.duration);
+  }
+
+  source.onended = () => {
+    if (currentBufferSource === source) {
+      currentBufferSource = null;
+      globalSpeechVisemeTracker.reset();
+      globalAudioAnalyser.disconnect();
+      callbacks?.onEnd?.();
+    }
+  };
+
+  source.start(0);
+  callbacks?.onStart?.();
+  return true;
+}
+
+function schedulePlayOnFirstGesture(
+  arrayBuffer: ArrayBuffer,
+  text: string,
+  requestId: number,
+  callbacks?: PlaySpeechCallbacks,
+): void {
+  if (typeof window === 'undefined') return;
+  if (cleanupUnlockListeners) {
+    cleanupUnlockListeners();
+  }
+
+  const onGesture = async () => {
+    if (cleanupUnlockListeners) {
+      cleanupUnlockListeners();
+    }
+    if (requestId !== currentRequestId) return;
+
+    await globalAudioAnalyser.resume();
+    if (requestId !== currentRequestId) return;
+
+    const ctx = globalAudioAnalyser.context;
+    if (ctx && ctx.state === 'running') {
+      try {
+        await playViaAudioContext(ctx, arrayBuffer, text, requestId, callbacks);
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
+  const remove = () => {
+    window.removeEventListener('pointerdown', onGesture);
+    window.removeEventListener('touchstart', onGesture);
+    window.removeEventListener('keydown', onGesture);
+    cleanupUnlockListeners = null;
+  };
+
+  cleanupUnlockListeners = remove;
+  window.addEventListener('pointerdown', onGesture, { once: true, passive: true });
+  window.addEventListener('touchstart', onGesture, { once: true, passive: true });
+  window.addEventListener('keydown', onGesture, { once: true, passive: true });
 }
 
 /**
@@ -43,15 +124,26 @@ export async function playEdgeSpeech(
       throw new Error(`TTS server responded with status: ${res.status}`);
     }
 
-    const blob = await res.blob();
+    const arrayBuffer = await res.arrayBuffer();
     if (abortController.signal.aborted || requestId !== currentRequestId) {
       return false;
     }
 
-    if (blob.size === 0) {
+    if (arrayBuffer.byteLength === 0) {
       throw new Error('Received empty audio blob');
     }
 
+    await globalAudioAnalyser.resume();
+    if (abortController.signal.aborted || requestId !== currentRequestId) {
+      return false;
+    }
+
+    const ctx = globalAudioAnalyser.context;
+    if (ctx && ctx.state === 'running') {
+      return await playViaAudioContext(ctx, arrayBuffer, text, requestId, callbacks);
+    }
+
+    const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
     const url = URL.createObjectURL(blob);
     if (abortController.signal.aborted || requestId !== currentRequestId) {
       try {
@@ -111,8 +203,24 @@ export async function playEdgeSpeech(
       }
     };
 
-    await audio.play();
-    return true;
+    try {
+      await audio.play();
+      return true;
+    } catch (playErr: unknown) {
+      globalSpeechVisemeTracker.reset();
+      globalAudioAnalyser.disconnect();
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
+      currentAudio = null;
+
+      if (playErr instanceof DOMException && playErr.name === 'NotAllowedError') {
+        schedulePlayOnFirstGesture(arrayBuffer, text, requestId, callbacks);
+        return true;
+      }
+      throw playErr;
+    }
   } catch (err: unknown) {
     globalSpeechVisemeTracker.reset();
     globalAudioAnalyser.disconnect();
@@ -140,11 +248,22 @@ export async function playEdgeSpeech(
  */
 export function stopEdgeSpeech(): void {
   currentRequestId++;
+  if (cleanupUnlockListeners) {
+    cleanupUnlockListeners();
+  }
   if (currentAbortController) {
     try {
       currentAbortController.abort();
     } catch { /* ignore */ }
     currentAbortController = null;
+  }
+  if (currentBufferSource) {
+    try {
+      currentBufferSource.onended = null;
+      currentBufferSource.stop();
+      currentBufferSource.disconnect();
+    } catch { /* ignore */ }
+    currentBufferSource = null;
   }
   globalSpeechVisemeTracker.reset();
   globalAudioAnalyser.disconnect();
